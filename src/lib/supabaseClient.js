@@ -33,6 +33,7 @@ export async function uploadProductPhoto(fileOrBlob) {
     else if (mimeType.includes('webp')) ext = 'webp';
     else if (mimeType.includes('gif')) ext = 'gif';
     else if (mimeType.includes('mp4')) ext = 'mp4';
+    else if (mimeType.includes('webm')) ext = 'webm';
     else if (mimeType.includes('quicktime')) ext = 'mov';
 
     const filePath = `produtos/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;

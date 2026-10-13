@@ -185,6 +185,38 @@ export function ProductProvider({ children }) {
         }
       }
 
+      // Upload do arquivo de vídeo se houver
+      let finalVideo = null;
+      if (newProduct.video) {
+        let videoUrl = newProduct.video.url || null;
+
+        const videoRawFile = newProduct.videoFile || newProduct.video.file;
+        if (videoRawFile instanceof Blob || (typeof File !== 'undefined' && videoRawFile instanceof File)) {
+          showToast('Enviando vídeo para o Supabase Storage...');
+          videoUrl = await uploadProductPhoto(videoRawFile);
+        }
+
+        let videoCover = newProduct.video.cover || finalImages[0] || null;
+        if (videoCover && typeof videoCover === 'string' && videoCover.startsWith('data:image/')) {
+          try {
+            const coverBlob = base64ToBlob(videoCover);
+            videoCover = await uploadProductPhoto(coverBlob);
+          } catch (covErr) {
+            console.warn('Falha no upload de miniatura do vídeo:', covErr);
+            videoCover = finalImages[0] || null;
+          }
+        }
+
+        if (videoUrl) {
+          finalVideo = {
+            title: newProduct.video.title || 'Demonstração em Vídeo',
+            desc: newProduct.video.desc || 'Registro audiovisual do item',
+            url: videoUrl,
+            cover: videoCover || finalImages[0] || null
+          };
+        }
+      }
+
       // Inserção no banco Supabase
       const payload = {
         title: newProduct.title,
@@ -200,10 +232,7 @@ export function ProductProvider({ children }) {
         whatsapp: newProduct.whatsapp || '5571999088651',
         status: newProduct.status || 'available',
         images: finalImages,
-        video: newProduct.video ? {
-          ...newProduct.video,
-          cover: newProduct.video.cover || finalImages[0] || null
-        } : null,
+        video: finalVideo,
         description: newProduct.description || '',
         specs: newProduct.specs || []
       };

@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { CATEGORIES } from '../data/initialProducts';
 import { generateCommercialAd } from '../lib/aiCopywriter';
-import { optimizeImageFile, getExternalVideoInfo, formatBytes } from '../lib/imageOptimizer';
+import { optimizeImageFile, compressVideoFile, generateVideoThumbnail, getExternalVideoInfo, formatBytes } from '../lib/imageOptimizer';
 
 export default function AdminScreen({ onBack, onProductCreated, onNavigateToManage, onLogout }) {
   const { addProduct, showToast } = useProducts();
@@ -28,7 +28,10 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
   const [publishedProduct, setPublishedProduct] = useState(null);
 
   const [videoUrl, setVideoUrl] = useState('');
+  const [videoFile, setVideoFile] = useState(null);
   const [videoThumbnail, setVideoThumbnail] = useState('');
+  const [isCompressingVideo, setIsCompressingVideo] = useState(false);
+  const [videoCompressProgress, setVideoCompressProgress] = useState(0);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [tempVideoInput, setTempVideoInput] = useState('');
 
@@ -44,7 +47,7 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
     if (!files.length) return;
 
     setIsOptimizing(true);
-    showToast(`Otimizando ${files.length} arquivo(s)... ⚡`);
+    showToast(`Processando ${files.length} arquivo(s)... ⚡`);
 
     try {
       const processedPreviews = [];
@@ -54,18 +57,46 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
 
       for (const file of files) {
         if (file.type && file.type.startsWith('video/')) {
-          if (file.size > 48 * 1024 * 1024) {
-            alert(`O vídeo "${file.name}" tem mais de 48MB. Para vídeos muito pesados, utilize a opção "+ Link Vídeo" (YouTube Shorts ou Reels).`);
-            continue;
+          setIsCompressingVideo(true);
+          setVideoCompressProgress(0);
+          showToast(`Otimizando vídeo (${formatBytes(file.size)})... 🎬`);
+
+          try {
+            // Comprime o vídeo no navegador (reduz para 720p / 1.2 Mbps para caber no Supabase)
+            const compressed = await compressVideoFile(file, (pct) => {
+              setVideoCompressProgress(pct);
+            });
+
+            if (compressed.size > 49 * 1024 * 1024) {
+              alert(`Mesmo após a compressão, o vídeo "${file.name}" tem ${formatBytes(compressed.size)} (acima da cota de 50MB do Supabase).\nPara vídeos muito longos, utilize a opção "+ Link Vídeo" (YouTube Shorts ou Reels).`);
+              setIsCompressingVideo(false);
+              continue;
+            }
+
+            const thumb = await generateVideoThumbnail(compressed);
+            const localUrl = URL.createObjectURL(compressed);
+            setVideoFile(compressed);
+            setVideoUrl(localUrl);
+            if (thumb) {
+              setVideoThumbnail(thumb);
+            }
+
+            showToast(`Vídeo otimizado de ${formatBytes(file.size)} para ${formatBytes(compressed.size)}! 🎬✨`);
+          } catch (vidErr) {
+            console.error('Falha na compressão de vídeo:', vidErr);
+            if (file.size <= 49 * 1024 * 1024) {
+              const thumb = await generateVideoThumbnail(file);
+              const localUrl = URL.createObjectURL(file);
+              setVideoFile(file);
+              setVideoUrl(localUrl);
+              if (thumb) setVideoThumbnail(thumb);
+              showToast('Vídeo adicionado com sucesso!');
+            } else {
+              alert(`O vídeo tem ${formatBytes(file.size)} e não pôde ser comprimido. Utilize a opção "+ Link Vídeo" (YouTube Shorts).`);
+            }
+          } finally {
+            setIsCompressingVideo(false);
           }
-          const res = await optimizeImageFile(file);
-          const localUrl = URL.createObjectURL(file);
-          setVideoUrl(localUrl);
-          if (res.previewUrl) {
-            setVideoThumbnail(res.previewUrl);
-          }
-          processedFiles.push(file);
-          showToast('Vídeo adicionado e miniatura gerada com sucesso! 🎬');
         } else {
           // Otimiza e comprime imagem
           const res = await optimizeImageFile(file, {
@@ -86,7 +117,7 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
         showToast(`${processedPreviews.length} foto(s) otimizada(s)! ${formatBytes(totalOrig)} ➔ ${formatBytes(totalOpt)} ✨`);
       }
     } catch (err) {
-      console.error('Erro na otimização de imagem:', err);
+      console.error('Erro na otimização de mídias:', err);
       showToast('Erro ao processar mídias selecionadas.');
     } finally {
       setIsOptimizing(false);
@@ -139,8 +170,11 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
 
   const handleRemoveVideo = () => {
     setVideoUrl('');
+    setVideoFile(null);
     setVideoThumbnail('');
     setTempVideoInput('');
+    setIsCompressingVideo(false);
+    setVideoCompressProgress(0);
     showToast('Vídeo removido.');
   };
 
@@ -239,8 +273,11 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
     setImages([]);
     setImageFiles([]);
     setVideoUrl('');
+    setVideoFile(null);
     setVideoThumbnail('');
     setTempVideoInput('');
+    setIsCompressingVideo(false);
+    setVideoCompressProgress(0);
     setSpecs([
       { key: 'Material', value: '' },
       { key: 'Medidas', value: '' }
@@ -306,7 +343,8 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
         conditionDesc,
         whatsapp: whatsapp.replace(/\D/g, '') || '5571999088651',
         images: filesToUpload,
-        video: videoUrl ? {
+        videoFile: videoFile || null,
+        video: (videoUrl || videoFile) ? {
           title: 'Demonstração em Vídeo',
           desc: 'Registro audiovisual do item',
           url: videoUrl,
@@ -438,11 +476,33 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
               />
             </div>
 
-            {/* Indicador de Otimização */}
-            {isOptimizing && (
+            {/* Indicador de Otimização de Fotos */}
+            {isOptimizing && !isCompressingVideo && (
               <div className="flex items-center justify-center gap-2.5 p-3.5 bg-secondary-fixed/20 border border-secondary/30 rounded-2xl text-secondary animate-pulse">
                 <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
                 <span className="font-label-md text-xs font-semibold">Otimizando e comprimindo fotos para alta velocidade...</span>
+              </div>
+            )}
+
+            {/* Indicador de Compressão de Vídeo */}
+            {isCompressingVideo && (
+              <div className="flex flex-col gap-2 p-3.5 bg-secondary-fixed/20 border border-secondary/30 rounded-2xl text-secondary">
+                <div className="flex items-center justify-between font-label-md text-xs font-semibold">
+                  <span className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
+                    Otimizando vídeo para caber no Supabase...
+                  </span>
+                  <span className="font-bold">{videoCompressProgress}%</span>
+                </div>
+                <div className="w-full h-2.5 rounded-full bg-secondary-fixed/40 overflow-hidden">
+                  <div
+                    className="h-full bg-secondary transition-all duration-300 rounded-full"
+                    style={{ width: `${videoCompressProgress}%` }}
+                  />
+                </div>
+                <span className="text-[11px] text-on-surface-variant">
+                  Comprimindo resolução e taxa de bits no navegador para caber na cota do Supabase.
+                </span>
               </div>
             )}
 
@@ -516,12 +576,17 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
                     <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold uppercase tracking-wider">
                       Vídeo Vinculado
                     </span>
+                    {videoFile && (
+                      <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-[10px] font-medium">
+                        {formatBytes(videoFile.size)}
+                      </span>
+                    )}
                   </div>
                   <p className="font-body-sm text-xs text-on-surface font-medium truncate mt-1">
-                    {videoUrl.startsWith('data:') || videoUrl.startsWith('blob:') ? 'Vídeo Local Adicionado' : videoUrl}
+                    {videoFile ? `Vídeo Otimizado (${videoFile.name})` : videoUrl}
                   </p>
                   <span className="text-[11px] text-outline block">
-                    Aparecerá na galeria do produto no bazar
+                    {videoFile ? 'Otimizado e pronto para envio ao Supabase' : 'Aparecerá na galeria do produto no bazar'}
                   </span>
                 </div>
 
