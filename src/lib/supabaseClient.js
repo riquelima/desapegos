@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { optimizeImageFile } from './imageOptimizer';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://djvaaeggztkhkhsnfjid.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqdmFhZWdnenRraGtoc25mamlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMTMxMjIsImV4cCI6MjEwNjg4OTEyMn0.tykPy-_yeg06NMc8Y-8_R93QxIuqN7x8urpV6jl09rY';
@@ -14,7 +15,19 @@ const BUCKET_NAME = 'desapegos-fotos';
  */
 export async function uploadProductPhoto(fileOrBlob) {
   try {
-    const mimeType = fileOrBlob.type || 'image/jpeg';
+    let payloadFile = fileOrBlob;
+
+    // Se for imagem e for maior que 800KB, comprime antes de subir
+    if (fileOrBlob.type && fileOrBlob.type.startsWith('image/') && fileOrBlob.size > 800 * 1024) {
+      try {
+        const optimized = await optimizeImageFile(fileOrBlob, { maxWidth: 1600, maxHeight: 1600, quality: 0.82 });
+        payloadFile = optimized.file;
+      } catch (e) {
+        console.warn('Compressão automática de segurança falhou, prosseguindo com original:', e);
+      }
+    }
+
+    const mimeType = payloadFile.type || 'image/jpeg';
     let ext = 'jpg';
     if (mimeType.includes('png')) ext = 'png';
     else if (mimeType.includes('webp')) ext = 'webp';
@@ -26,7 +39,7 @@ export async function uploadProductPhoto(fileOrBlob) {
 
     const { data, error } = await supabase.storage
       .from(BUCKET_NAME)
-      .upload(filePath, fileOrBlob, {
+      .upload(filePath, payloadFile, {
         contentType: mimeType,
         cacheControl: '3600',
         upsert: true

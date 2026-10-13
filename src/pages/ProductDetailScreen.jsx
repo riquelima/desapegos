@@ -128,36 +128,72 @@ export default function ProductDetailScreen({ productId, onBack }) {
             {/* Slide de Vídeo (se houver) */}
             {hasVideo && (
               <div
-                className={`absolute inset-0 transition-opacity duration-500 bg-primary-container text-on-primary ${
+                className={`absolute inset-0 transition-opacity duration-500 bg-black text-on-primary ${
                   activeSlide === images.length ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'
                 }`}
               >
-                <img
-                  src={product.video.cover || images[0]}
-                  alt="Prévia do vídeo"
-                  className="w-full h-full object-cover opacity-60"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-primary/40"></div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-space-lg text-center">
-                  <button
-                    type="button"
-                    onClick={() => setIsVideoPlaying(!isVideoPlaying)}
-                    className="w-16 h-16 rounded-full bg-secondary text-on-secondary shadow-xl flex items-center justify-center active:scale-90 transition-transform mb-space-sm group"
-                  >
-                    <span
-                      className="material-symbols-outlined text-[34px] ml-1 group-hover:scale-110 transition-transform"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
+                {isVideoPlaying && product.video?.url ? (
+                  <div className="relative w-full h-full flex items-center justify-center bg-black">
+                    {(() => {
+                      const ytMatch = product.video.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([\w-]{11})/);
+                      if (ytMatch && ytMatch[1]) {
+                        return (
+                          <iframe
+                            src={`https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0`}
+                            title={product.video.title || product.title}
+                            className="w-full h-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        );
+                      }
+                      return (
+                        <video
+                          src={product.video.url}
+                          controls
+                          autoPlay
+                          className="w-full h-full object-contain"
+                        />
+                      );
+                    })()}
+                    <button
+                      type="button"
+                      onClick={() => setIsVideoPlaying(false)}
+                      className="absolute top-3 right-3 z-30 w-8 h-8 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black"
                     >
-                      {isVideoPlaying ? 'pause' : 'play_arrow'}
-                    </span>
-                  </button>
-                  <span className="font-headline-sm text-headline-sm text-surface font-semibold">
-                    {product.video.title || 'Vídeo Hands-on'}
-                  </span>
-                  <p className="font-body-sm text-body-sm text-surface-container-high mt-1 max-w-[220px]">
-                    {isVideoPlaying ? 'Demonstração em reprodução' : product.video.desc || 'Confira detalhes e acabamento real'}
-                  </p>
-                </div>
+                      <span className="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <img
+                      src={product.video.cover || images[0]}
+                      alt="Prévia do vídeo"
+                      className="w-full h-full object-cover opacity-60"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40"></div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-space-lg text-center">
+                      <button
+                        type="button"
+                        onClick={() => setIsVideoPlaying(true)}
+                        className="w-16 h-16 rounded-full bg-secondary text-on-secondary shadow-xl flex items-center justify-center active:scale-90 transition-transform mb-space-sm group"
+                      >
+                        <span
+                          className="material-symbols-outlined text-[34px] ml-1 group-hover:scale-110 transition-transform"
+                          style={{ fontVariationSettings: "'FILL' 1" }}
+                        >
+                          play_arrow
+                        </span>
+                      </button>
+                      <span className="font-headline-sm text-headline-sm text-white font-semibold">
+                        {product.video.title || 'Vídeo Hands-on'}
+                      </span>
+                      <p className="font-body-sm text-body-sm text-neutral-300 mt-1 max-w-[220px]">
+                        {product.video.desc || 'Toque para assistir à demonstração real'}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 

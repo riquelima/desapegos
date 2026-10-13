@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { CATEGORIES } from '../data/initialProducts';
 import { generateCommercialAd } from '../lib/aiCopywriter';
+import { optimizeImageFile, getExternalVideoInfo, formatBytes } from '../lib/imageOptimizer';
 
 export default function AdminScreen({ onBack, onProductCreated, onNavigateToManage, onLogout }) {
   const { addProduct, showToast } = useProducts();
@@ -21,11 +22,13 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
   // Mídias
   const [images, setImages] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
+  const [isOptimizing, setIsOptimizing] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [publishedProduct, setPublishedProduct] = useState(null);
 
   const [videoUrl, setVideoUrl] = useState('');
+  const [videoThumbnail, setVideoThumbnail] = useState('');
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [tempVideoInput, setTempVideoInput] = useState('');
 
@@ -35,26 +38,68 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
     { key: 'Medidas', value: '' }
   ]);
 
-  // Upload de arquivos de imagem locais
-  const handleFileUpload = (e) => {
+  // Upload e Otimização Automática no Navegador (Fotos e Vídeos)
+  const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    files.forEach(file => {
-      setImageFiles(prev => [...prev, file]);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImages(prev => [...prev, event.target.result]);
-      };
-      reader.readAsDataURL(file);
-    });
+    setIsOptimizing(true);
+    showToast(`Otimizando ${files.length} arquivo(s)... ⚡`);
 
-    showToast(`${files.length} foto(s) selecionada(s)!`);
+    try {
+      const processedPreviews = [];
+      const processedFiles = [];
+      let totalOrig = 0;
+      let totalOpt = 0;
+
+      for (const file of files) {
+        if (file.type && file.type.startsWith('video/')) {
+          if (file.size > 48 * 1024 * 1024) {
+            alert(`O vídeo "${file.name}" tem mais de 48MB. Para vídeos muito pesados, utilize a opção "+ Link Vídeo" (YouTube Shorts ou Reels).`);
+            continue;
+          }
+          const res = await optimizeImageFile(file);
+          const localUrl = URL.createObjectURL(file);
+          setVideoUrl(localUrl);
+          if (res.previewUrl) {
+            setVideoThumbnail(res.previewUrl);
+          }
+          processedFiles.push(file);
+          showToast('Vídeo adicionado e miniatura gerada com sucesso! 🎬');
+        } else {
+          // Otimiza e comprime imagem
+          const res = await optimizeImageFile(file, {
+            maxWidth: 1600,
+            maxHeight: 1600,
+            quality: 0.82
+          });
+          processedPreviews.push(res.previewUrl);
+          processedFiles.push(res.file);
+          totalOrig += res.originalSize;
+          totalOpt += res.optimizedSize;
+        }
+      }
+
+      if (processedPreviews.length > 0) {
+        setImages(prev => [...prev, ...processedPreviews]);
+        setImageFiles(prev => [...prev, ...processedFiles]);
+        showToast(`${processedPreviews.length} foto(s) otimizada(s)! ${formatBytes(totalOrig)} ➔ ${formatBytes(totalOpt)} ✨`);
+      }
+    } catch (err) {
+      console.error('Erro na otimização de imagem:', err);
+      showToast('Erro ao processar mídias selecionadas.');
+    } finally {
+      setIsOptimizing(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const removeImage = (indexToRemove) => {
     setImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
     setImageFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
+    showToast('Foto removida');
   };
 
   const setCoverImage = (indexToCover) => {
@@ -71,7 +116,32 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
       }
       return prev;
     });
-    showToast('Foto definida como capa!');
+    showToast('Foto definida como capa do anúncio!');
+  };
+
+  const handleConfirmVideoModal = () => {
+    const trimmed = tempVideoInput.trim();
+    if (!trimmed) {
+      setShowVideoModal(false);
+      return;
+    }
+
+    const info = getExternalVideoInfo(trimmed);
+    setVideoUrl(trimmed);
+    if (info && info.thumbnailUrl) {
+      setVideoThumbnail(info.thumbnailUrl);
+    } else if (images.length > 0) {
+      setVideoThumbnail(images[0]);
+    }
+    setShowVideoModal(false);
+    showToast('Vídeo vinculado com sucesso! Prévia disponível.');
+  };
+
+  const handleRemoveVideo = () => {
+    setVideoUrl('');
+    setVideoThumbnail('');
+    setTempVideoInput('');
+    showToast('Vídeo removido.');
   };
 
   // Manipulação de especificações
@@ -169,6 +239,7 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
     setImages([]);
     setImageFiles([]);
     setVideoUrl('');
+    setVideoThumbnail('');
     setTempVideoInput('');
     setSpecs([
       { key: 'Material', value: '' },
@@ -238,7 +309,8 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
         video: videoUrl ? {
           title: 'Demonstração em Vídeo',
           desc: 'Registro audiovisual do item',
-          cover: images[0] || null
+          url: videoUrl,
+          cover: videoThumbnail || images[0] || null
         } : null,
         description: description.trim() || 'Item impecável para retirada imediata por motivo de mudança.',
         specs: specs.filter(s => s.key.trim() && s.value.trim()),
@@ -359,49 +431,110 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 multiple
                 className="hidden"
                 onChange={handleFileUpload}
               />
             </div>
 
+            {/* Indicador de Otimização */}
+            {isOptimizing && (
+              <div className="flex items-center justify-center gap-2.5 p-3.5 bg-secondary-fixed/20 border border-secondary/30 rounded-2xl text-secondary animate-pulse">
+                <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+                <span className="font-label-md text-xs font-semibold">Otimizando e comprimindo fotos para alta velocidade...</span>
+              </div>
+            )}
+
             {/* Grade de Fotos Atuais */}
-            <div className="grid grid-cols-3 gap-2 mt-1">
-              {images.map((img, idx) => (
-                <div
-                  key={idx}
-                  className="relative aspect-[4/5] rounded-xl overflow-hidden bg-surface-container group shadow-sm border border-surface-container-high/60"
-                >
-                  <img
-                    src={img}
-                    alt={`Preview ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  {idx === 0 ? (
-                    <span className="absolute top-1.5 left-1.5 bg-primary text-on-primary font-label-sm text-[9px] px-2 py-0.5 rounded-full shadow">
-                      Capa
-                    </span>
-                  ) : (
+            {images.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                {images.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="relative aspect-[4/5] rounded-xl overflow-hidden bg-surface-container group shadow-sm border border-surface-container-high/60"
+                  >
+                    <img
+                      src={img}
+                      alt={`Preview ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    {idx === 0 ? (
+                      <span className="absolute top-1.5 left-1.5 bg-primary text-on-primary font-label-sm text-[9px] px-2 py-0.5 rounded-full shadow">
+                        Capa
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setCoverImage(idx)}
+                        className="absolute top-1.5 left-1.5 bg-surface/90 text-on-surface font-label-sm text-[9px] px-1.5 py-0.5 rounded shadow hover:bg-primary hover:text-white transition-colors"
+                      >
+                        Tornar Capa
+                      </button>
+                    )}
+
                     <button
                       type="button"
-                      onClick={() => setCoverImage(idx)}
-                      className="absolute top-1.5 left-1.5 bg-surface/90 text-on-surface font-label-sm text-[9px] px-1.5 py-0.5 rounded shadow hover:bg-primary hover:text-white transition-colors"
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-surface/90 text-error flex items-center justify-center shadow hover:bg-error hover:text-white transition-colors"
                     >
-                      Tornar Capa
+                      <span className="material-symbols-outlined text-[14px]">close</span>
                     </button>
-                  )}
+                  </div>
+                ))}
+              </div>
+            )}
 
-                  <button
-                    type="button"
-                    onClick={() => removeImage(idx)}
-                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-surface/90 text-error flex items-center justify-center shadow hover:bg-error hover:text-white transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">close</span>
-                  </button>
+            {/* Pré-visualização do Vídeo Vinculado */}
+            {videoUrl && (
+              <div className="relative rounded-2xl overflow-hidden bg-surface-container-low border border-surface-container-high p-3 flex items-center gap-3 shadow-sm mt-1">
+                <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-neutral-900 flex-shrink-0 flex items-center justify-center">
+                  {videoThumbnail ? (
+                    <img
+                      src={videoThumbnail}
+                      alt="Thumbnail do Vídeo"
+                      className="w-full h-full object-cover opacity-85"
+                    />
+                  ) : images[0] ? (
+                    <img
+                      src={images[0]}
+                      alt="Thumbnail do Vídeo"
+                      className="w-full h-full object-cover opacity-85"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-white text-[28px]">videocam</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                    <span className="material-symbols-outlined text-white text-[22px]">play_circle</span>
+                  </div>
                 </div>
-              ))}
-            </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold uppercase tracking-wider">
+                      Vídeo Vinculado
+                    </span>
+                  </div>
+                  <p className="font-body-sm text-xs text-on-surface font-medium truncate mt-1">
+                    {videoUrl.startsWith('data:') || videoUrl.startsWith('blob:') ? 'Vídeo Local Adicionado' : videoUrl}
+                  </p>
+                  <span className="text-[11px] text-outline block">
+                    Aparecerá na galeria do produto no bazar
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleRemoveVideo}
+                  title="Remover Vídeo"
+                  className="w-8 h-8 rounded-full bg-surface-container-high text-error hover:bg-error hover:text-white flex items-center justify-center transition-colors active:scale-90"
+                >
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                </button>
+              </div>
+            )}
           </section>
 
           {/* 2. Informações Básicas */}
@@ -717,11 +850,7 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setVideoUrl(tempVideoInput);
-                  setShowVideoModal(false);
-                  showToast('Vídeo vinculado com sucesso!');
-                }}
+                onClick={handleConfirmVideoModal}
                 className="flex-1 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-xs font-semibold"
               >
                 Adicionar

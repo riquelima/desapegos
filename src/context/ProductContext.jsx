@@ -202,7 +202,7 @@ export function ProductProvider({ children }) {
         images: finalImages,
         video: newProduct.video ? {
           ...newProduct.video,
-          cover: finalImages[0] || null
+          cover: newProduct.video.cover || finalImages[0] || null
         } : null,
         description: newProduct.description || '',
         specs: newProduct.specs || []
