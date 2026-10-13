@@ -55,13 +55,22 @@ export default function AdminManageScreen({ onBack, onNavigateToCreate, onSelect
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <span className="material-symbols-outlined text-[36px] text-outline mb-2">inventory</span>
             <p className="font-body-md text-sm text-outline">Nenhum produto cadastrado no bazar.</p>
-            <button
-              type="button"
-              onClick={resetToSampleData}
-              className="mt-4 px-4 py-2 bg-secondary text-white text-xs font-semibold rounded-full"
-            >
-              Restaurar Itens de Exemplo
-            </button>
+            <div className="flex items-center gap-2 mt-4">
+              <button
+                type="button"
+                onClick={onNavigateToCreate}
+                className="px-4 py-2 bg-primary text-on-primary text-xs font-semibold rounded-full shadow-sm hover:bg-neutral-800"
+              >
+                Cadastrar Item
+              </button>
+              <button
+                type="button"
+                onClick={resetToSampleData}
+                className="px-4 py-2 bg-surface-container text-on-surface text-xs font-semibold rounded-full"
+              >
+                Sincronizar Supabase
+              </button>
+            </div>
           </div>
         ) : (
           products.map(prod => {

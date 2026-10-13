@@ -8,21 +8,28 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const BUCKET_NAME = 'desapegos-fotos';
 
 /**
- * Faz upload de um arquivo ou blob de imagem para o bucket desapegos-fotos
- * @param {File|Blob} file 
- * @param {string} fileName 
+ * Faz upload de um arquivo ou blob de imagem para o bucket desapegos-fotos no Supabase
+ * @param {File|Blob} fileOrBlob 
  * @returns {Promise<string>} URL pública da foto
  */
-export async function uploadProductPhoto(file, customName) {
+export async function uploadProductPhoto(fileOrBlob) {
   try {
-    const ext = file.name ? file.name.split('.').pop() : 'jpg';
-    const filePath = `produtos/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+    const mimeType = fileOrBlob.type || 'image/jpeg';
+    let ext = 'jpg';
+    if (mimeType.includes('png')) ext = 'png';
+    else if (mimeType.includes('webp')) ext = 'webp';
+    else if (mimeType.includes('gif')) ext = 'gif';
+    else if (mimeType.includes('mp4')) ext = 'mp4';
+    else if (mimeType.includes('quicktime')) ext = 'mov';
+
+    const filePath = `produtos/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
 
     const { data, error } = await supabase.storage
       .from(BUCKET_NAME)
-      .upload(filePath, file, {
+      .upload(filePath, fileOrBlob, {
+        contentType: mimeType,
         cacheControl: '3600',
-        upsert: false
+        upsert: true
       });
 
     if (error) {
@@ -42,10 +49,15 @@ export async function uploadProductPhoto(file, customName) {
 }
 
 /**
- * Converte base64 para Blob para facilitar upload no Supabase Storage
+ * Converte base64 para Blob detectando o tipo MIME automaticamente
  */
-export function base64ToBlob(base64Data, contentType = 'image/jpeg') {
-  const byteCharacters = atob(base64Data.split(',')[1]);
+export function base64ToBlob(base64Data) {
+  if (!base64Data || typeof base64Data !== 'string') return null;
+
+  const match = base64Data.match(/^data:([^;]+);base64,/);
+  const contentType = match ? match[1] : 'image/jpeg';
+  const base64Clean = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+  const byteCharacters = atob(base64Clean);
   const byteArrays = [];
 
   for (let offset = 0; offset < byteCharacters.length; offset += 512) {
@@ -54,8 +66,7 @@ export function base64ToBlob(base64Data, contentType = 'image/jpeg') {
     for (let i = 0; i < slice.length; i++) {
       byteNumbers[i] = slice.charCodeAt(i);
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
+    byteArrays.push(new Uint8Array(byteNumbers));
   }
 
   return new Blob(byteArrays, { type: contentType });

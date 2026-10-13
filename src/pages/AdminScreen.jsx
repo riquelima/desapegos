@@ -19,17 +19,20 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
   const [whatsapp, setWhatsapp] = useState('+55 71 99908-8651');
 
   // Mídias
-  const [images, setImages] = useState([
-    'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80'
-  ]);
+  const [images, setImages] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [publishedProduct, setPublishedProduct] = useState(null);
+
   const [videoUrl, setVideoUrl] = useState('');
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [tempVideoInput, setTempVideoInput] = useState('');
 
   // Especificações dinâmicas
   const [specs, setSpecs] = useState([
-    { key: 'Material', value: 'Madeira maciça nobre' },
-    { key: 'Conservação', value: 'Perfeito estado, sem riscos' }
+    { key: 'Material', value: '' },
+    { key: 'Medidas', value: '' }
   ]);
 
   // Upload de arquivos de imagem locais
@@ -38,6 +41,7 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
     if (!files.length) return;
 
     files.forEach(file => {
+      setImageFiles(prev => [...prev, file]);
       const reader = new FileReader();
       reader.onload = (event) => {
         setImages(prev => [...prev, event.target.result]);
@@ -45,15 +49,12 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
       reader.readAsDataURL(file);
     });
 
-    showToast(`${files.length} arquivo(s) carregado(s)!`);
+    showToast(`${files.length} foto(s) selecionada(s)!`);
   };
 
   const removeImage = (indexToRemove) => {
-    if (images.length === 1) {
-      showToast('O produto precisa ter pelo menos 1 imagem');
-      return;
-    }
     setImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
+    setImageFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
   const setCoverImage = (indexToCover) => {
@@ -61,6 +62,14 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
       const chosen = prev[indexToCover];
       const rest = prev.filter((_, idx) => idx !== indexToCover);
       return [chosen, ...rest];
+    });
+    setImageFiles(prev => {
+      if (prev.length > indexToCover) {
+        const chosen = prev[indexToCover];
+        const rest = prev.filter((_, idx) => idx !== indexToCover);
+        return [chosen, ...rest];
+      }
+      return prev;
     });
     showToast('Foto definida como capa!');
   };
@@ -147,9 +156,36 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
     }
   };
 
-  // Publicar produto
-  const handlePublish = (e) => {
+  // Limpar formulário para novo cadastro
+  const handleResetForm = () => {
+    setTitle('');
+    setSubtitle('');
+    setCategory('Mobiliário');
+    setCondition('semi-new');
+    setOriginalPrice('');
+    setPrice('');
+    setDescription('');
+    setWhatsapp('+55 71 99908-8651');
+    setImages([]);
+    setImageFiles([]);
+    setVideoUrl('');
+    setTempVideoInput('');
+    setSpecs([
+      { key: 'Material', value: '' },
+      { key: 'Medidas', value: '' }
+    ]);
+    setShowSuccessModal(false);
+    setPublishedProduct(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    localStorage.removeItem('desapegos_product_draft');
+  };
+
+  // Publicar produto no Supabase
+  const handlePublish = async (e) => {
     if (e) e.preventDefault();
+    if (isPublishing) return;
 
     if (!title.trim()) {
       showToast('Por favor, informe o título do produto');
@@ -158,6 +194,11 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
     const cleanPrice = parseFloat(price.toString().replace(/\D/g, ''));
     if (!cleanPrice || isNaN(cleanPrice)) {
       showToast('Por favor, informe um valor de venda válido');
+      return;
+    }
+
+    if (images.length === 0 && imageFiles.length === 0) {
+      showToast('Por favor, adicione pelo menos 1 foto do item!');
       return;
     }
 
@@ -173,37 +214,49 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
       conditionDesc = 'Pequenos desgastes visuais estéticos, 100% funcional.';
     }
 
-    // Criar objeto do produto
-    const newProduct = {
-      title: title.trim(),
-      subtitle: subtitle.trim(),
-      category,
-      categorySlug: category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-'),
-      tag: category,
-      price: cleanPrice,
-      originalPrice: cleanOriginalPrice,
-      condition,
-      conditionLabel,
-      conditionDesc,
-      whatsapp: whatsapp.replace(/\D/g, '') || '5571999088651',
-      images,
-      video: videoUrl ? {
-        title: 'Demonstração em Vídeo',
-        desc: 'Registro audiovisual do item',
-        cover: images[0]
-      } : null,
-      description: description.trim() || 'Item impecável para retirada imediata por motivo de mudança.',
-      specs: specs.filter(s => s.key.trim() && s.value.trim()),
-      status: 'available'
-    };
+    setIsPublishing(true);
+    showToast('Enviando fotos e salvando no Supabase...');
 
-    const created = addProduct(newProduct);
-    localStorage.removeItem('desapegos_product_draft');
+    try {
+      // Prioriza arquivos brutos File para upload direto no bucket
+      const filesToUpload = imageFiles.length > 0 ? imageFiles : images;
 
-    if (onProductCreated) {
-      onProductCreated(created.id);
-    } else {
-      onBack();
+      // Criar objeto do produto
+      const newProduct = {
+        title: title.trim(),
+        subtitle: subtitle.trim(),
+        category,
+        categorySlug: category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-'),
+        tag: category,
+        price: cleanPrice,
+        originalPrice: cleanOriginalPrice,
+        condition,
+        conditionLabel,
+        conditionDesc,
+        whatsapp: whatsapp.replace(/\D/g, '') || '5571999088651',
+        images: filesToUpload,
+        video: videoUrl ? {
+          title: 'Demonstração em Vídeo',
+          desc: 'Registro audiovisual do item',
+          cover: images[0] || null
+        } : null,
+        description: description.trim() || 'Item impecável para retirada imediata por motivo de mudança.',
+        specs: specs.filter(s => s.key.trim() && s.value.trim()),
+        status: 'available'
+      };
+
+      const created = await addProduct(newProduct);
+      localStorage.removeItem('desapegos_product_draft');
+
+      setPublishedProduct(created);
+      setShowSuccessModal(true);
+      showToast('Produto publicado com sucesso no Supabase! 🎉');
+    } catch (err) {
+      console.error('Erro ao publicar no Supabase:', err);
+      showToast(`Erro ao publicar: ${err.message || 'Falha no envio'}`);
+      alert(`Não foi possível salvar no Supabase:\n${err.message || 'Erro desconhecido. Verifique sua conexão e tente novamente.'}`);
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -678,23 +731,132 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
         </div>
       )}
 
+      {/* Telinha de Confirmação Pós-Publicação no Supabase */}
+      {showSuccessModal && publishedProduct && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-margin animate-in fade-in duration-200">
+          <div className="bg-surface-container-lowest border border-surface-container-high rounded-3xl p-6 w-full max-w-sm flex flex-col items-center text-center shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Ícone de Sucesso Animado */}
+            <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-lg shadow-emerald-500/20 mb-3">
+              <span className="material-symbols-outlined text-[36px] font-bold">check_circle</span>
+            </div>
+
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-label-md text-[11px] font-semibold tracking-wide uppercase mb-1">
+              Supabase Sincronizado
+            </span>
+
+            <h3 className="font-headline-sm text-lg font-bold text-on-surface">
+              Publicado com Sucesso!
+            </h3>
+            <p className="font-body-sm text-xs text-on-surface-variant mt-1 mb-4 leading-relaxed">
+              O produto e suas fotos foram salvos no Supabase e já estão disponíveis no Bazar.
+            </p>
+
+            {/* Card Resumo do Produto Publicado */}
+            <div className="w-full bg-surface-container-low rounded-2xl p-3 flex items-center gap-3 border border-surface-container-high/60 mb-5 text-left">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface-container-high flex-shrink-0">
+                {publishedProduct.images && publishedProduct.images[0] ? (
+                  <img
+                    src={publishedProduct.images[0]}
+                    alt={publishedProduct.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-outline">
+                    <span className="material-symbols-outlined text-[20px]">image</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] uppercase font-semibold text-primary tracking-wider block">
+                  {publishedProduct.category}
+                </span>
+                <h4 className="font-title-sm text-sm font-semibold text-on-surface truncate">
+                  {publishedProduct.title}
+                </h4>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="font-headline-sm text-xs font-bold text-on-surface">
+                    R$ {Number(publishedProduct.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Disponível</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="flex flex-col w-full gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  if (onProductCreated) {
+                    onProductCreated(publishedProduct.id);
+                  } else {
+                    onBack();
+                  }
+                }}
+                className="w-full h-12 rounded-full bg-primary text-on-primary font-label-md text-xs font-semibold shadow-md hover:bg-neutral-800 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>Ver Produto no Bazar</span>
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetForm}
+                className="w-full h-11 rounded-full bg-surface-container text-on-surface font-label-md text-xs font-semibold hover:bg-surface-container-high active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                <span>Cadastrar Outro Item</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  onBack();
+                }}
+                className="text-outline hover:text-on-surface font-label-md text-[11px] py-1 transition-colors"
+              >
+                Voltar para a Vitrine Inicial
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Barra Inferior Fixa de Ação */}
       <div className="fixed bottom-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-t border-surface-container-high/60 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] px-margin py-3 pb-safe">
         <div className="flex items-center gap-2 max-w-md mx-auto">
           <button
             type="button"
             onClick={saveDraft}
-            className="flex-1 h-12 rounded-full bg-surface-container text-on-surface font-label-md text-xs font-semibold hover:bg-surface-container-high active:scale-95 transition-all text-center"
+            disabled={isPublishing}
+            className="flex-1 h-12 rounded-full bg-surface-container text-on-surface font-label-md text-xs font-semibold hover:bg-surface-container-high active:scale-95 transition-all text-center disabled:opacity-50"
           >
             Salvar Rascunho
           </button>
           <button
             type="button"
             onClick={handlePublish}
-            className="flex-[1.6] h-12 rounded-full bg-primary text-on-primary font-label-md text-xs font-semibold shadow-md hover:bg-neutral-800 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+            disabled={isPublishing}
+            className={`flex-[1.6] h-12 rounded-full font-label-md text-xs font-semibold shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 ${
+              isPublishing
+                ? 'bg-neutral-600 text-white opacity-80 cursor-wait'
+                : 'bg-primary text-on-primary hover:bg-neutral-800'
+            }`}
           >
-            <span className="material-symbols-outlined text-[18px]">publish</span>
-            Publicar no Bazar
+            {isPublishing ? (
+              <>
+                <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                <span>Enviando ao Supabase...</span>
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-[18px]">publish</span>
+                <span>Publicar no Bazar</span>
+              </>
+            )}
           </button>
         </div>
       </div>

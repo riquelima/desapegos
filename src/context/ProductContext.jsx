@@ -163,19 +163,25 @@ export function ProductProvider({ children }) {
 
     let finalImages = [];
     try {
-      // Faz upload de cada foto para o Bucket 'desapegos-fotos' no Supabase se for base64
-      for (const img of newProduct.images || []) {
-        if (typeof img === 'string' && img.startsWith('data:image/')) {
+      // Faz upload de cada foto para o Bucket 'desapegos-fotos' no Supabase
+      for (const item of newProduct.images || []) {
+        if (item instanceof Blob || (typeof File !== 'undefined' && item instanceof File)) {
+          const publicUrl = await uploadProductPhoto(item);
+          finalImages.push(publicUrl);
+        } else if (item && typeof item === 'object' && item.file) {
+          const publicUrl = await uploadProductPhoto(item.file);
+          finalImages.push(publicUrl);
+        } else if (typeof item === 'string' && item.startsWith('data:image/')) {
           try {
-            const blob = base64ToBlob(img);
+            const blob = base64ToBlob(item);
             const publicUrl = await uploadProductPhoto(blob);
             finalImages.push(publicUrl);
           } catch (uploadErr) {
-            console.error('Erro no upload de foto, mantendo local:', uploadErr);
-            finalImages.push(img);
+            console.error('Erro no upload de foto base64:', uploadErr);
+            finalImages.push(item);
           }
-        } else {
-          finalImages.push(img);
+        } else if (typeof item === 'string') {
+          finalImages.push(item);
         }
       }
 
@@ -194,7 +200,10 @@ export function ProductProvider({ children }) {
         whatsapp: newProduct.whatsapp || '5571999088651',
         status: newProduct.status || 'available',
         images: finalImages,
-        video: newProduct.video || null,
+        video: newProduct.video ? {
+          ...newProduct.video,
+          cover: finalImages[0] || null
+        } : null,
         description: newProduct.description || '',
         specs: newProduct.specs || []
       };
@@ -207,12 +216,7 @@ export function ProductProvider({ children }) {
 
       if (error) {
         console.error('Erro ao salvar produto no Supabase:', error);
-        // Fallback local se falhar conexão
-        const fallbackId = Date.now().toString();
-        const localProduct = { ...newProduct, id: fallbackId, images: finalImages };
-        setProducts(prev => [localProduct, ...prev]);
-        showToast('Produto publicado localmente!');
-        return localProduct;
+        throw new Error(error.message || 'Falha na inserção no banco');
       }
 
       const created = {
@@ -223,15 +227,10 @@ export function ProductProvider({ children }) {
       };
 
       setProducts(prev => [created, ...prev]);
-      showToast('Produto publicado e fotos salvas no Supabase!');
       return created;
     } catch (err) {
       console.error('Falha geral ao publicar:', err);
-      const fallbackId = Date.now().toString();
-      const localProduct = { ...newProduct, id: fallbackId, images: finalImages };
-      setProducts(prev => [localProduct, ...prev]);
-      showToast('Produto publicado no dispositivo!');
-      return localProduct;
+      throw err;
     }
   };
 
