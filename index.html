@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <title>Desapegos Mudança - Bazar Especial</title>
+  
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..700;1,400..700&family=Rochester&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN for exact design match -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container": "#efeeeb",
+            "inverse-surface": "#2f312f",
+            "on-primary-container": "#858386",
+            "on-secondary-container": "#691600",
+            "surface-container-high": "#e9e8e5",
+            "inverse-on-surface": "#f2f1ee",
+            "inverse-primary": "#c8c6c8",
+            "primary-container": "#1b1b1d",
+            "secondary-fixed": "#ffdbd1",
+            "secondary": "#a83819",
+            "surface-container-low": "#f4f3f0",
+            "surface": "#faf9f6",
+            "on-secondary-fixed-variant": "#872002",
+            "secondary-fixed-dim": "#ffb5a1",
+            "on-tertiary-fixed-variant": "#474744",
+            "primary": "#000000",
+            "on-surface-variant": "#47464a",
+            "on-surface": "#1a1c1a",
+            "tertiary": "#000000",
+            "background": "#faf9f6",
+            "tertiary-fixed-dim": "#c8c6c2",
+            "on-tertiary": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "on-error-container": "#93000a",
+            "surface-tint": "#5f5e60",
+            "secondary-container": "#fd7550",
+            "primary-fixed": "#e5e1e4",
+            "error-container": "#ffdad6",
+            "outline": "#77767b",
+            "on-error": "#ffffff",
+            "on-secondary-fixed": "#3c0800",
+            "on-secondary": "#ffffff",
+            "on-primary": "#ffffff",
+            "surface-bright": "#faf9f6",
+            "tertiary-fixed": "#e4e2dd",
+            "error": "#ba1a1a",
+            "primary-fixed-dim": "#c8c6c8",
+            "tertiary-container": "#1b1c19",
+            "surface-dim": "#dbdad7",
+            "on-tertiary-fixed": "#1b1c19",
+            "on-tertiary-container": "#858480",
+            "on-background": "#1a1c1a",
+            "outline-variant": "#c8c6ca",
+            "surface-container-highest": "#e3e2e0",
+            "on-primary-fixed": "#1b1b1d",
+            "on-primary-fixed-variant": "#474649",
+            "surface-variant": "#e3e2e0"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "space-xs": "0.25rem",
+            "margin": "1rem",
+            "space-lg": "1.5rem",
+            "gutter": "0.75rem",
+            "space-md": "1rem",
+            "space-xl": "2.5rem",
+            "margin-md": "1.5rem",
+            "gutter-md": "1rem",
+            "space-sm": "0.5rem"
+          },
+          fontFamily: {
+            "label-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-lg": ["Epilogue", "sans-serif"],
+            "label-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "label-md": ["Plus Jakarta Sans", "sans-serif"],
+            "body-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-sm": ["Epilogue", "sans-serif"],
+            "display-lg": ["Epilogue", "sans-serif"],
+            "display-lg-mobile": ["Epilogue", "sans-serif"],
+            "body-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-md": ["Epilogue", "sans-serif"],
+            "body-md": ["Plus Jakarta Sans", "sans-serif"],
+            "rochester": ["Rochester", "cursive"]
+          },
+          fontSize: {
+            "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700" }],
+            "headline-lg": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "500" }],
+            "label-lg": ["14px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "display-lg-mobile": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.025em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-[#f0ede6] min-h-screen text-on-surface font-body-md antialiased selection:bg-secondary/20">
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

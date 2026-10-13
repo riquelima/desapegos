@@ -1,0 +1,402 @@
+<!DOCTYPE html><html lang="pt-BR" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_stack" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-primary-container": "#858386", "on-tertiary": "#ffffff", "surface-container-low": "#f4f3f0", "secondary-container": "#fd7550", "outline": "#77767b", "surface-tint": "#5f5e60", "secondary-fixed": "#ffdbd1", "on-tertiary-fixed": "#1b1c19", "surface-container-highest": "#e3e2e0", "primary-container": "#1b1b1d", "on-error-container": "#93000a", "on-secondary-container": "#691600", "background": "#faf9f6", "surface-variant": "#e3e2e0", "on-primary": "#ffffff", "on-secondary-fixed-variant": "#872002", "tertiary-fixed-dim": "#c8c6c2", "surface": "#faf9f6", "surface-bright": "#faf9f6", "tertiary-fixed": "#e4e2dd", "error-container": "#ffdad6", "on-primary-fixed-variant": "#474649", "surface-container-lowest": "#ffffff", "on-error": "#ffffff", "on-tertiary-fixed-variant": "#474744", "primary-fixed": "#e5e1e4", "on-tertiary-container": "#858480", "secondary": "#a83819", "on-secondary-fixed": "#3c0800", "primary-fixed-dim": "#c8c6c8", "tertiary": "#000000", "on-secondary": "#ffffff", "error": "#ba1a1a", "secondary-fixed-dim": "#ffb5a1", "tertiary-container": "#1b1c19", "on-background": "#1a1c1a", "inverse-surface": "#2f312f", "on-surface-variant": "#47464a", "primary": "#000000", "outline-variant": "#c8c6ca", "on-surface": "#1a1c1a", "inverse-primary": "#c8c6c8", "surface-container": "#efeeeb", "on-primary-fixed": "#1b1b1d", "surface-dim": "#dbdad7", "surface-container-high": "#e9e8e5", "inverse-on-surface": "#f2f1ee" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin": "1rem", "space-md": "1rem", "space-xl": "2.5rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin-md": "1.5rem", "gutter-md": "1rem", "gutter": "0.75rem", "space-sm": "0.5rem" }, "fontFamily": { "body-sm": ["Plus Jakarta Sans"], "display-lg-mobile": ["Epilogue"], "body-lg": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "headline-md": ["Epilogue"], "headline-sm": ["Epilogue"], "headline-lg": ["Epilogue"], "display-lg": ["Epilogue"] }, "fontSize": { "body-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400"}], "display-lg-mobile": ["32px", {"lineHeight": "38px", "letterSpacing": "-0.025em", "fontWeight": "600"}], "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400"}], "label-lg": ["14px", {"lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "600"}], "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400"}], "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}], "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.04em", "fontWeight": "700"}], "headline-md": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "500"}], "headline-sm": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}], "headline-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "500"}], "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "600"}] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.03)] pt-safe"><div class="h-16 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs"><button aria-label="Voltar ou Fechar" class="w-11 h-11 -ml-space-xs flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container-high transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">close</span></button><h1 class="font-headline-sm text-headline-sm text-on-surface truncate">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Cadastrar Produto</h1></div><div class="flex items-center gap-space-sm"><button aria-label="Salvar Rascunho" class="w-11 h-11 flex items-center justify-center rounded-full text-secondary hover:bg-secondary-fixed/20 transition-colors" onclick="triggerDraftToast()" type="button"><span class="material-symbols-outlined text-[22px]">bookmark_added</span></button></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-safe bg-surface px-margin"><div class="flex flex-col w-full pb-32">
+<!-- Status Context Bar -->
+
+<form class="flex flex-col gap-space-xl" id="productForm" onsubmit="event.preventDefault();">
+<!-- 1. Mídia do Produto -->
+<section class="flex flex-col gap-space-md">
+<div class="flex items-baseline justify-between">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Mídia do Item</h2>
+
+</div>
+
+</div>
+<!-- Upload Zone -->
+<div class="group relative bg-surface-container-lowest rounded-xl p-space-lg flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 hover:bg-surface-container-low" id="dropZone">
+<div class="flex items-center gap-space-sm mb-space-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">add_a_photo</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[20px]">videocam</span>
+</div>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface mb-0.5">Adicionar Fotos e Vídeos</p>
+<p class="font-body-sm text-body-sm text-outline mb-space-sm">Arraste arquivos ou toque para navegar</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high/60 px-space-sm py-0.5 rounded-full">
+          Até 10 fotos e 2 vídeos (≤ 60s) • JPG, PNG, MP4
+        </span>
+<input accept="image/*,video/*" class="hidden" id="fileInput" multiple="" type="file">
+</div>
+<!-- External Video Link Option -->
+
+<!-- Media Grid -->
+<div class="grid grid-cols-3 gap-gutter">
+<!-- Media 1: Cover Photo -->
+<div class="relative aspect-[4/5] rounded-xl overflow-hidden bg-surface-container group shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Close-up luxury studio shot of matte black and titanium over-ear wireless headphones resting gently on a warm sand travertine stone pedestal with warm diffused light and soft organic shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD55kxzeUb0LwPAq2-R5iJMeNM4pJVhk8d-QF2g7UFaspkf9nVqjv2BqD-7z_fm-y14MW_BuPdtLlfUCXwUx0nIp29ypsWtvl70vLCAj3rs4weAgxY7BbHS8nppfm2bu8tQa0Pik1k0Pq-9UF3pICa9vANHV0P1L4dSY3qVLh7M_or1CZpInxWY_ltNdPG8UmNFGKvBYv_RxlCYZ66CedG1PzDnjLgMwUiWUsmdgATyS6zbEkTlSyvw">
+<span class="absolute top-2 left-2 bg-primary text-on-primary font-label-sm text-label-sm px-2 py-0.5 rounded-full shadow-sm">
+            Capa
+          </span>
+<div class="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-space-xs">
+<button aria-label="Visualizar foto" class="w-8 h-8 rounded-full bg-surface text-on-surface flex items-center justify-center shadow-md" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+</button>
+<button aria-label="Remover foto" class="w-8 h-8 rounded-full bg-error text-on-error flex items-center justify-center shadow-md" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Media 2: Secondary Detail Photo -->
+<div class="relative aspect-[4/5] rounded-xl overflow-hidden bg-surface-container group shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Macro detail of brushed aluminum hinge and supple perforated leather headband on premium headphones, showing immaculate condition and craftsmanship under architectural golden hour daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCXiEfdj4yYx5AP_fuOAiDIAm8P3c-xKDvuvFhO70y2Gl0BGIGe7vYVM0eWDMlB1Bnd0ACke0qOw0XJI8tZsdz1cEtjyeXhGDiiMXXmXQ_v1LVU2GqUfeo9lnMP-G_ExoHtb-JUbzpdm4oQNwgu2VR2sIaTGzQXlOkRKn2qyzSaZ3VQcyxYHFUQQVY74TsKqoMzVuuPV7DpNjAVs-o7uyubjNrwwfhzrFILAre-1F9TxjniLusKUIk">
+<button aria-label="Remover foto" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-surface/80 backdrop-blur-md text-on-surface flex items-center justify-center shadow-sm hover:bg-error hover:text-on-error transition-colors" type="button">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- Media 3: Video Demonstration -->
+<div class="relative aspect-[4/5] rounded-xl overflow-hidden bg-surface-container group shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Modern minimalist aesthetic video thumbnail showing hands opening the magnetic rigid travel case of dark headphones on an oak desk with ambient lamp glow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHJNmmmHEdLsHIIPkBbwfaMRN65LWVzkkGJefCnjnERFgvIgwMg_KxLZ4VSjI8gB0_TK5oLx_HQEuxQVb3wovrdczzPdy1qsqE_Du0FcIiV0Flb8pVB69NHgTgBongUk8itT2ikFQQDmADFeD564oVAuu_rKgL1SHTDrdjgo-UlyAoKxEmu16Dmib6vY-V8CmbogCbsQuMfR7f8b5inpDgeiQAlGH4RAi7qelUJbv5JVGWLQnv6-sZ">
+<div class="absolute inset-0 bg-primary/20 flex flex-col justify-between p-2">
+<span class="self-start bg-secondary text-on-secondary font-label-sm text-label-sm px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px]">videocam</span> Vídeo
+            </span>
+<div class="self-center w-8 h-8 rounded-full bg-surface/90 backdrop-blur-md flex items-center justify-center text-primary shadow-md">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 1;">play_arrow</span>
+</div>
+<span class="self-end bg-surface-container-lowest/80 backdrop-blur-sm text-on-surface font-label-sm text-label-sm px-1.5 py-0.5 rounded">
+              0:45
+            </span>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. Informações Básicas -->
+<section class="flex flex-col gap-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Dados Principais</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Como os compradores identificarão o item</p>
+</div>
+<div class="space-y-space-md">
+<!-- Title Input -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface" for="productTitle">Título do Desapego</label>
+<input class="w-full h-12 px-space-md rounded-lg bg-surface-container-lowest text-on-surface placeholder:text-outline font-body-md text-body-md focus:outline-none focus:bg-surface-container-low transition-colors" id="productTitle" placeholder="Ex: Fone Wireless Arc Pro" type="text" value="Fone Wireless Arc Pro">
+</div>
+<!-- Subtitle / Edition Input -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface" for="productEdition">Subtítulo ou Edição Especial</label>
+<input class="w-full h-12 px-space-md rounded-lg bg-surface-container-lowest text-on-surface placeholder:text-outline font-body-md text-body-md focus:outline-none focus:bg-surface-container-low transition-colors" id="productEdition" placeholder="Ex: Titanium Edition" type="text" value="Titanium Edition • Edição Limitada">
+</div>
+<!-- Category Selector -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface">Categoria</label>
+<div class="flex flex-wrap gap-space-xs" id="categoryGroup">
+<button class="category-chip px-space-md py-2 rounded-full font-label-md text-label-md bg-primary text-on-primary transition-all" type="button">Áudio Premium</button>
+<button class="category-chip px-space-md py-2 rounded-full font-label-md text-label-md bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-all" type="button">Mobiliário</button>
+<button class="category-chip px-space-md py-2 rounded-full font-label-md text-label-md bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-all" type="button">Iluminação</button>
+<button class="category-chip px-space-md py-2 rounded-full font-label-md text-label-md bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-all" type="button">Ergonomia</button>
+<button class="category-chip px-space-md py-2 rounded-full font-label-md text-label-md bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-all" type="button">Decoração</button>
+</div>
+</div>
+<!-- Condition Selection -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface">Condição Real do Item</label>
+<span class="font-label-sm text-label-sm text-secondary">Transparência do bazar</span>
+</div>
+<div class="grid grid-cols-1 gap-space-xs" id="conditionCards">
+<!-- Option 1 -->
+<label class="relative flex items-center justify-between p-space-md rounded-xl bg-surface-container-lowest cursor-pointer transition-all hover:bg-surface-container-low">
+<div class="flex items-center gap-space-md">
+<input class="accent-primary w-4 h-4" name="condition" type="radio" value="new">
+<div>
+<p class="font-label-md text-label-md text-on-surface">Novo na Caixa / Lacrado</p>
+<p class="font-body-sm text-body-sm text-outline">Sem uso prévio, com plástico ou lacre original intacto.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[20px]">verified</span>
+</label>
+<!-- Option 2 (Selected) -->
+<label class="relative flex items-center justify-between p-space-md rounded-xl bg-surface-container-high cursor-pointer transition-all">
+<div class="flex items-center gap-space-md">
+<input checked="" class="accent-primary w-4 h-4" name="condition" type="radio" value="semi-new">
+<div>
+<p class="font-label-md text-label-md text-on-surface font-semibold">Seminovo / Estado Impecável</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Pouco usado em estúdio, zero arranhões, higienizado.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">stars</span>
+</label>
+<!-- Option 3 -->
+<label class="relative flex items-center justify-between p-space-md rounded-xl bg-surface-container-lowest cursor-pointer transition-all hover:bg-surface-container-low">
+<div class="flex items-center gap-space-md">
+<input class="accent-primary w-4 h-4" name="condition" type="radio" value="used">
+<div>
+<p class="font-label-md text-label-md text-on-surface">Com Marcas de Uso Afetuosas</p>
+<p class="font-body-sm text-body-sm text-outline">Pequenos desgastes visuais estéticos, 100% funcional.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[20px]">auto_stories</span>
+</label>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Preço e Condições de Pagamento -->
+<section class="flex flex-col gap-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Preço &amp; Desapego</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Defina valores atrativos para liquidação rápida</p>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-lg flex flex-col gap-space-md">
+<!-- Dual Price Inputs -->
+<div class="grid grid-cols-2 gap-space-md">
+<div class="flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">Preço Original (De)</span>
+<div class="flex items-center h-12 px-space-md rounded-lg bg-surface-container text-on-surface font-body-md text-body-md">
+<span class="text-outline mr-1">R$</span>
+<input class="w-full bg-transparent text-on-surface focus:outline-none line-through" type="text" value="2.400,00">
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Valor Bazar (Por) *</span>
+<div class="flex items-center h-12 px-space-md rounded-lg bg-secondary-fixed/30 text-on-surface font-body-md text-body-md">
+<span class="text-secondary font-semibold mr-1">R$</span>
+<input class="w-full bg-transparent text-on-surface font-bold focus:outline-none" type="text" value="1.890,00">
+</div>
+</div>
+</div>
+
+<div class="h-[1px] bg-surface-container-highest my-0.5"></div>
+<!-- Toggles Section -->
+
+</div>
+</section>
+<!-- 4. Descrição do Produto & História do Desapego -->
+<section class="flex flex-col gap-space-md">
+<div class="flex items-baseline justify-between">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">História &amp; Descrição</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Conte por que está desapegando e encante</p>
+</div>
+<button class="text-secondary font-label-sm text-label-sm flex items-center gap-1 hover:underline" type="button">
+<span class="material-symbols-outlined text-[14px]">magic_button</span> Sugestão IA
+        </button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-space-sm">
+<!-- Minimal Formatting Bar -->
+<div class="flex items-center gap-space-xs pb-space-xs bg-surface-container-low/50 p-space-xs rounded-lg text-outline">
+<button class="w-8 h-8 rounded flex items-center justify-center hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">format_bold</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">format_italic</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">transcribe</span>
+</button>
+</div>
+<textarea class="w-full bg-transparent text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none resize-none leading-relaxed" placeholder="Descreva as qualidades, cuidados e o motivo da venda..." rows="5">O Arc Pro foi esculpido para quem exige precisão de estúdio e conforto absoluto. Adquirido há 6 meses para um projeto acústico específico de design de som, quase não saiu do suporte de madeira. 
+
+Almofadas de couro de carneiro impecáveis, sem marcas de transpiração ou desgaste. Som equilibrado com palco sonoro ultra-amplo. Desapegando unicamente por conta de mudança interestadual com restrição de bagagem.</textarea>
+</div>
+</section>
+<!-- 5. Especificações Técnicas Dinâmicas -->
+<section class="flex flex-col gap-space-md">
+<div class="flex items-baseline justify-between">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Especificações Chave</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Detalhes técnicos para consulta rápida</p>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs" id="specsContainer">
+<!-- Spec Row 1 -->
+<div class="spec-row flex items-center gap-space-xs bg-surface-container-lowest p-2 rounded-lg">
+<input class="w-5/12 h-10 px-space-sm bg-surface-container-low rounded font-label-md text-label-md text-on-surface focus:outline-none" placeholder="Propriedade" type="text" value="Driver Acústico">
+<input class="w-6/12 h-10 px-space-sm bg-surface-container-low rounded font-body-md text-body-md text-on-surface focus:outline-none" placeholder="Valor" type="text" value="40mm Puro Berílio">
+<button class="w-8 h-10 flex items-center justify-center text-outline hover:text-error transition-colors" onclick="removeSpec(this)" type="button">
+<span class="material-symbols-outlined text-[18px]">remove_circle_outline</span>
+</button>
+</div>
+<!-- Spec Row 2 -->
+<div class="spec-row flex items-center gap-space-xs bg-surface-container-lowest p-2 rounded-lg">
+<input class="w-5/12 h-10 px-space-sm bg-surface-container-low rounded font-label-md text-label-md text-on-surface focus:outline-none" placeholder="Propriedade" type="text" value="Autonomia">
+<input class="w-6/12 h-10 px-space-sm bg-surface-container-low rounded font-body-md text-body-md text-on-surface focus:outline-none" placeholder="Valor" type="text" value="40h com ANC Ativo">
+<button class="w-8 h-10 flex items-center justify-center text-outline hover:text-error transition-colors" onclick="removeSpec(this)" type="button">
+<span class="material-symbols-outlined text-[18px]">remove_circle_outline</span>
+</button>
+</div>
+<!-- Spec Row 3 -->
+<div class="spec-row flex items-center gap-space-xs bg-surface-container-lowest p-2 rounded-lg">
+<input class="w-5/12 h-10 px-space-sm bg-surface-container-low rounded font-label-md text-label-md text-on-surface focus:outline-none" placeholder="Propriedade" type="text" value="Acessórios Inclusos">
+<input class="w-6/12 h-10 px-space-sm bg-surface-container-low rounded font-body-md text-body-md text-on-surface focus:outline-none" placeholder="Valor" type="text" value="Case rígido magnético + Cabos originais">
+<button class="w-8 h-10 flex items-center justify-center text-outline hover:text-error transition-colors" onclick="removeSpec(this)" type="button">
+<span class="material-symbols-outlined text-[18px]">remove_circle_outline</span>
+</button>
+</div>
+</div>
+<button class="w-full py-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 transition-colors" onclick="addSpecRow()" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span> Adicionar especificação
+      </button>
+</section>
+<!-- 6. WhatsApp & Contato Direto -->
+<section class="flex flex-col gap-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Canal de Negociação</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Onde os compradores acionarão o botão "Comprar / Reservar"</p>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-space-sm">
+<label class="font-label-md text-label-md text-on-surface" for="sellerWhatsapp">Número WhatsApp</label>
+<div class="flex items-center h-12 px-space-md rounded-lg bg-surface-container-low text-on-surface">
+<span class="material-symbols-outlined text-outline mr-2 text-[20px]">chat</span>
+<input class="w-full bg-transparent font-body-md text-body-md text-on-surface focus:outline-none" id="sellerWhatsapp" placeholder="+55 11 99999-9999" type="tel" value="+55 11 99482-1082">
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+          Um link direto com mensagem personalizada pré-preenchida será gerado na página do item.
+        </p>
+</div>
+</section>
+</form>
+<!-- Sticky Actions Bar (Fixed to bottom above safe area) -->
+<div class="fixed bottom-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.06)] px-margin py-3 pb-safe">
+<div class="flex items-center gap-space-sm max-w-lg mx-auto">
+<button class="flex-1 h-13 py-3 rounded-full bg-surface-container text-on-surface font-label-lg text-label-lg hover:bg-surface-container-high active:scale-95 transition-all text-center" onclick="triggerDraftToast()" type="button">
+        Salvar Rascunho
+      </button>
+<button class="flex-[1.5] h-13 py-3 rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-md hover:bg-on-background active:scale-95 transition-all flex items-center justify-center gap-2" onclick="triggerPublishSuccess()" type="button">
+<span class="material-symbols-outlined text-[18px]">publish</span>
+        Publicar no Bazar
+      </button>
+</div>
+</div>
+<!-- Micro Toast Notification Element -->
+<div class="fixed top-20 inset-x-margin z-50 transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex justify-center" id="toastNotification">
+<div class="bg-primary text-on-primary px-space-md py-space-sm rounded-full shadow-lg flex items-center gap-2 font-label-md text-label-md">
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]">check_circle</span>
+<span id="toastMsg" class="">Alterações salvas no bazar com sucesso!</span>
+</div>
+</div>
+<!-- Inline Minimal Modal for External Video -->
+<div class="fixed inset-0 z-50 bg-primary/40 backdrop-blur-sm hidden items-center justify-center p-margin" id="externalVideoModal">
+<div class="bg-surface-container-lowest rounded-2xl p-space-lg w-full max-w-sm flex flex-col gap-space-md shadow-2xl">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Link do Vídeo</h3>
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-outline" onclick="toggleExternalVideoModal()" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cole o endereço do vídeo no YouTube, Instagram Reels ou Google Drive.</p>
+<input class="w-full h-12 px-space-md rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none" placeholder="https://youtube.com/shorts/..." type="url">
+<div class="flex items-center gap-space-sm pt-space-xs">
+<button class="flex-1 py-2.5 rounded-full bg-surface-container text-on-surface font-label-md text-label-md" onclick="toggleExternalVideoModal()" type="button">Cancelar</button>
+<button class="flex-1 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md" onclick="confirmVideoLink()" type="button">Adicionar</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Category Pill Selection Logic
+  document.querySelectorAll('.category-chip').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.category-chip').forEach(btn => {
+        btn.classList.remove('bg-primary', 'text-on-primary');
+        btn.classList.add('bg-surface-container-lowest', 'text-on-surface');
+      });
+      button.classList.add('bg-primary', 'text-on-primary');
+      button.classList.remove('bg-surface-container-lowest', 'text-on-surface');
+    });
+  });
+
+  // Switch Toggle Logic
+  function toggleSwitch(element) {
+    const isChecked = element.getAttribute('aria-checked') === 'true';
+    const thumb = element.querySelector('span');
+    if (isChecked) {
+      element.setAttribute('aria-checked', 'false');
+      element.classList.remove('bg-primary');
+      element.classList.add('bg-surface-container-highest');
+      thumb.classList.remove('translate-x-5');
+      thumb.classList.add('translate-x-0');
+    } else {
+      element.setAttribute('aria-checked', 'true');
+      element.classList.remove('bg-surface-container-highest');
+      element.classList.add('bg-primary');
+      thumb.classList.remove('translate-x-0');
+      thumb.classList.add('translate-x-5');
+    }
+  }
+
+  // Dynamic Specs Add/Remove
+  function addSpecRow() {
+    const container = document.getElementById('specsContainer');
+    const row = document.createElement('div');
+    row.className = 'spec-row flex items-center gap-space-xs bg-surface-container-lowest p-2 rounded-lg opacity-0 transition-opacity duration-300';
+    row.innerHTML = `
+      <input type="text" class="w-5/12 h-10 px-space-sm bg-surface-container-low rounded font-label-md text-label-md text-on-surface focus:outline-none" placeholder="Ex: Dimensão">
+      <input type="text" class="w-6/12 h-10 px-space-sm bg-surface-container-low rounded font-body-md text-body-md text-on-surface focus:outline-none" placeholder="Ex: 18 x 20 x 8 cm">
+      <button type="button" onclick="removeSpec(this)" class="w-8 h-10 flex items-center justify-center text-outline hover:text-error transition-colors">
+        <span class="material-symbols-outlined text-[18px]">remove_circle_outline</span>
+      </button>
+    `;
+    container.appendChild(row);
+    setTimeout(() => row.classList.remove('opacity-0'), 10);
+  }
+
+  function removeSpec(btn) {
+    const row = btn.closest('.spec-row');
+    row.classList.add('opacity-0');
+    setTimeout(() => row.remove(), 200);
+  }
+
+  // Toast System
+  function showToast(msg) {
+    const toast = document.getElementById('toastNotification');
+    const toastText = document.getElementById('toastMsg');
+    toastText.innerText = msg;
+    toast.classList.remove('-translate-y-24', 'opacity-0');
+    toast.classList.add('translate-y-0', 'opacity-100');
+    setTimeout(() => {
+      toast.classList.add('-translate-y-24', 'opacity-0');
+      toast.classList.remove('translate-y-0', 'opacity-100');
+    }, 3200);
+  }
+
+  function triggerDraftToast() {
+    showToast('Rascunho salvo no dispositivo.');
+  }
+
+  function triggerPublishSuccess() {
+    showToast('Produto publicado com sucesso no bazar!');
+  }
+
+  // Modal Video Handling
+  function toggleExternalVideoModal() {
+    const modal = document.getElementById('externalVideoModal');
+    if (modal.classList.contains('hidden')) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    } else {
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
+  }
+
+  function confirmVideoLink() {
+    toggleExternalVideoModal();
+    showToast('Vídeo externo vinculado com êxito!');
+  }
+
+  // File Upload trigger
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  if (dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
+  }
+</script></main>
+
+</body></html>
