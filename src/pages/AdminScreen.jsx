@@ -57,12 +57,26 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
 
       for (const file of files) {
         if (file.type && file.type.startsWith('video/')) {
+          // Se o vídeo já tem até 48MB, ele JÁ cabe no Supabase!
+          // Mantém o arquivo original intacto com 100% da qualidade e som original!
+          if (file.size <= 48 * 1024 * 1024) {
+            const thumb = await generateVideoThumbnail(file);
+            const localUrl = URL.createObjectURL(file);
+            setVideoFile(file);
+            setVideoUrl(localUrl);
+            if (thumb) {
+              setVideoThumbnail(thumb);
+            }
+            showToast(`Vídeo (${formatBytes(file.size)}) adicionado com áudio original! 🎬🔊`);
+            continue;
+          }
+
+          // Se tiver mais de 48MB, comprime no navegador preservando o som
           setIsCompressingVideo(true);
           setVideoCompressProgress(0);
-          showToast(`Otimizando vídeo (${formatBytes(file.size)})... 🎬`);
+          showToast(`Vídeo de ${formatBytes(file.size)}: comprimindo com som para caber no Supabase... 🎬`);
 
           try {
-            // Comprime o vídeo no navegador (reduz para 720p / 1.2 Mbps para caber no Supabase)
             const compressed = await compressVideoFile(file, (pct) => {
               setVideoCompressProgress(pct);
             });
@@ -81,19 +95,10 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
               setVideoThumbnail(thumb);
             }
 
-            showToast(`Vídeo otimizado de ${formatBytes(file.size)} para ${formatBytes(compressed.size)}! 🎬✨`);
+            showToast(`Vídeo otimizado de ${formatBytes(file.size)} para ${formatBytes(compressed.size)} (com som)! 🎬✨`);
           } catch (vidErr) {
             console.error('Falha na compressão de vídeo:', vidErr);
-            if (file.size <= 49 * 1024 * 1024) {
-              const thumb = await generateVideoThumbnail(file);
-              const localUrl = URL.createObjectURL(file);
-              setVideoFile(file);
-              setVideoUrl(localUrl);
-              if (thumb) setVideoThumbnail(thumb);
-              showToast('Vídeo adicionado com sucesso!');
-            } else {
-              alert(`O vídeo tem ${formatBytes(file.size)} e não pôde ser comprimido. Utilize a opção "+ Link Vídeo" (YouTube Shorts).`);
-            }
+            alert(`O vídeo tem ${formatBytes(file.size)} e não pôde ser comprimido. Utilize a opção "+ Link Vídeo" (YouTube Shorts).`);
           } finally {
             setIsCompressingVideo(false);
           }

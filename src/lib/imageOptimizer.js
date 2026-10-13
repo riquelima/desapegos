@@ -194,13 +194,15 @@ export async function compressVideoFile(videoFile, onProgress = () => {}) {
 
     const video = document.createElement('video');
     video.preload = 'auto';
-    video.muted = true;
     video.playsInline = true;
+    video.volume = 1.0;
+    video.muted = false; // Não muta para permitir que a API de áudio capture a trilha sonora
     const objectUrl = URL.createObjectURL(videoFile);
     video.src = objectUrl;
 
     let recorder = null;
     let animationFrameId = null;
+    let audioCtx = null;
 
     // Timeout de segurança (90s)
     const timeout = setTimeout(() => {
@@ -212,6 +214,9 @@ export async function compressVideoFile(videoFile, onProgress = () => {}) {
     const cleanup = () => {
       clearTimeout(timeout);
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (audioCtx && audioCtx.state !== 'closed') {
+        try { audioCtx.close(); } catch {}
+      }
       URL.revokeObjectURL(objectUrl);
       video.pause();
       video.src = '';
@@ -241,21 +246,60 @@ export async function compressVideoFile(videoFile, onProgress = () => {}) {
         canvas.height = height;
         const ctx = canvas.getContext('2d', { alpha: false });
 
-        let mimeType = 'video/webm;codecs=vp8';
-        if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) {
-          mimeType = 'video/mp4;codecs=avc1';
+        // Captura a trilha de áudio original do vídeo
+        let audioTrack = null;
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+            if (audioCtx.state === 'suspended') {
+              audioCtx.resume();
+            }
+            const source = audioCtx.createMediaElementSource(video);
+            const streamDest = audioCtx.createMediaStreamDestination();
+            source.connect(streamDest);
+            // Conecta APENAS ao streamDest (gravação) e não aos alto-falantes (silencioso durante o processo)
+            audioTrack = streamDest.stream.getAudioTracks()[0] || null;
+          }
+        } catch (audioErr) {
+          console.warn('Web Audio API falhou ao rotear som, tentando captureStream nativo:', audioErr);
+        }
+
+        if (!audioTrack) {
+          try {
+            const rawStream = video.captureStream ? video.captureStream() : (video.mozCaptureStream ? video.mozCaptureStream() : null);
+            if (rawStream && rawStream.getAudioTracks().length > 0) {
+              audioTrack = rawStream.getAudioTracks()[0];
+            }
+          } catch (rawErr) {
+            console.warn('video.captureStream não retornou áudio:', rawErr);
+          }
+        }
+
+        const canvasStream = canvas.captureStream(24);
+        const combinedTracks = [...canvasStream.getVideoTracks()];
+        if (audioTrack) {
+          combinedTracks.push(audioTrack);
+        }
+        const streamToRecord = new MediaStream(combinedTracks);
+
+        let mimeType = 'video/webm';
+        if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')) {
+          mimeType = 'video/mp4;codecs=avc1,mp4a.40.2';
         } else if (MediaRecorder.isTypeSupported('video/mp4')) {
           mimeType = 'video/mp4';
-        } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
-          mimeType = 'video/webm;codecs=h264';
+        } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+          mimeType = 'video/webm;codecs=vp8,opus';
+        } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264,opus')) {
+          mimeType = 'video/webm;codecs=h264,opus';
         } else if (MediaRecorder.isTypeSupported('video/webm')) {
           mimeType = 'video/webm';
         }
 
-        const stream = canvas.captureStream(24);
-        recorder = new MediaRecorder(stream, {
+        recorder = new MediaRecorder(streamToRecord, {
           mimeType,
-          videoBitsPerSecond: 1200000
+          videoBitsPerSecond: 1200000,
+          audioBitsPerSecond: 128000
         });
 
         const chunks = [];
@@ -308,9 +352,8 @@ export async function compressVideoFile(videoFile, onProgress = () => {}) {
           resolve(videoFile);
         };
 
-        // Tenta aceleração 1.5x para compressão mais ágil
         try {
-          video.playbackRate = 1.5;
+          video.playbackRate = 1.0; // Velocidade 1.0 preserva afinação e sincronismo perfeito do som
         } catch {}
 
         video.play().catch(() => {
