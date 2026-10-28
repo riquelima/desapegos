@@ -71,3 +71,4 @@ export function handleImageError(event, categoryOrTitle = '') {
   target.onerror = null;
   target.src = getProductPlaceholder(categoryOrTitle);
 }
+
