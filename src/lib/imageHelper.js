@@ -14,10 +14,11 @@ const CATEGORY_PLACEHOLDERS = {
   default: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=800&q=80' // interior geral
 };
 
-// Domínios legados/inativos conhecidos que não resolvem no DNS
+// Domínios ou links legados/inativos conhecidos que não resolvem
 const DEAD_DOMAINS = [
   'djvaaeggztkhkhsnfjid.supabase.co',
-  'your-project-id.supabase.co'
+  'your-project-id.supabase.co',
+  'photo-1580481077195-c3a821a58875'
 ];
 
 /**
@@ -38,7 +39,7 @@ export function getProductPlaceholder(categoryOrTitle = '') {
   if (norm.includes('mobil') || norm.includes('mesa') || norm.includes('bancada') || norm.includes('cadeira') || norm.includes('escrivan') || norm.includes('armario')) {
     return CATEGORY_PLACEHOLDERS.mobiliario;
   }
-  if (norm.includes('decor') || norm.includes('acessorio') || norm.includes('quadro') || norm.includes('planta')) {
+  if (norm.includes('decor') || norm.includes('acessorio') || norm.includes('quadro') || norm.includes('planta') || norm.includes('espelho')) {
     return CATEGORY_PLACEHOLDERS.acessorios;
   }
 
@@ -46,20 +47,27 @@ export function getProductPlaceholder(categoryOrTitle = '') {
 }
 
 /**
- * Resolve a URL da foto. Se a URL for nula, vazia ou apontar para um domínio morto,
+ * Resolve a URL da foto. Se a URL for nula, vazia, blob antigo ou apontar para um link morto,
  * entrega diretamente um placeholder visual para evitar requisição de rede inútil e erro visual.
  */
 export function resolveImageUrl(url, categoryOrTitle = '') {
-  if (!url || typeof url !== 'string') {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
     return getProductPlaceholder(categoryOrTitle);
   }
 
-  const isDead = DEAD_DOMAINS.some(domain => url.includes(domain));
+  const trimmed = url.trim();
+
+  // Bloqueia blob URLs de sessões anteriores que já expiraram
+  if (trimmed.startsWith('blob:')) {
+    return getProductPlaceholder(categoryOrTitle);
+  }
+
+  const isDead = DEAD_DOMAINS.some(domain => trimmed.includes(domain));
   if (isDead) {
     return getProductPlaceholder(categoryOrTitle);
   }
 
-  return url;
+  return trimmed;
 }
 
 /**

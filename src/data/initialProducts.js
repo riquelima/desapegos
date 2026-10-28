@@ -122,7 +122,7 @@ export const INITIAL_PRODUCTS = [
     conditionDesc: "Pistão a gás suave, encosto em tela mesh respirável.",
     whatsapp: "5571999088651",
     status: "available",
-    images: ["https://images.unsplash.com/photo-1580481077195-c3a821a58875?auto=format&fit=crop&w=800&q=80"],
+    images: ["https://images.unsplash.com/photo-1589384267710-7a170981ca78?auto=format&fit=crop&w=800&q=80"],
     description: "Cadeira presidente ergonômica ideal para longas jornadas de trabalho. Ajuste de altura e reclinação suave.",
     specs: [{ key: "Regulagem", value: "Altura pistão a gás classe 4" }, { key: "Revestimento", value: "Tela Mesh Antitranspirante" }]
   },

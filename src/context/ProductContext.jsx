@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { INITIAL_PRODUCTS } from '../data/initialProducts';
 import { supabase, uploadProductPhoto, base64ToBlob } from '../lib/supabaseClient';
+import { resolveImageUrl, getProductPlaceholder } from '../lib/imageHelper';
 
 const ProductContext = createContext(null);
 
-const STORAGE_KEY_PRODUCTS = 'desapegos_bazar_products_real_v1';
-const STORAGE_KEY_WISHLIST = 'desapegos_bazar_wishlist_real_v1';
-const STORAGE_KEY_CART = 'desapegos_bazar_cart_real_v1';
+const STORAGE_KEY_PRODUCTS = 'desapegos_bazar_products_v3';
+const STORAGE_KEY_WISHLIST = 'desapegos_bazar_wishlist_v3';
+const STORAGE_KEY_CART = 'desapegos_bazar_cart_v3';
 
 export function ProductProvider({ children }) {
   const [products, setProducts] = useState(() => {
@@ -14,7 +15,18 @@ export function ProductProvider({ children }) {
       const stored = localStorage.getItem(STORAGE_KEY_PRODUCTS);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(p => {
+            const rawImages = Array.isArray(p.images) ? p.images : [];
+            const safeImages = rawImages.length > 0
+              ? rawImages.map(img => resolveImageUrl(img, p.category || p.title))
+              : [getProductPlaceholder(p.category || p.title)];
+            return {
+              ...p,
+              images: safeImages
+            };
+          });
+        }
       }
     } catch (e) {
       console.warn('Erro ao carregar do cache local:', e);
@@ -122,26 +134,33 @@ export function ProductProvider({ children }) {
       }
 
       if (data && data.length > 0) {
-        const mapped = data.map(item => ({
-          id: String(item.id),
-          title: item.title,
-          subtitle: item.subtitle,
-          category: item.category,
-          categorySlug: item.category_slug,
-          tag: item.tag,
-          price: Number(item.price),
-          originalPrice: item.original_price ? Number(item.original_price) : null,
-          condition: item.condition,
-          conditionLabel: item.condition_label,
-          conditionDesc: item.condition_desc,
-          whatsapp: item.whatsapp || '5571999088651',
-          status: item.status || 'available',
-          images: Array.isArray(item.images) ? item.images : [],
-          video: item.video,
-          description: item.description,
-          specs: Array.isArray(item.specs) ? item.specs : [],
-          createdAt: item.created_at
-        }));
+        const mapped = data.map(item => {
+          const rawImages = Array.isArray(item.images) ? item.images : [];
+          const safeImages = rawImages.length > 0
+            ? rawImages.map(img => resolveImageUrl(img, item.category || item.title))
+            : [getProductPlaceholder(item.category || item.title)];
+
+          return {
+            id: String(item.id),
+            title: item.title,
+            subtitle: item.subtitle,
+            category: item.category,
+            categorySlug: item.category_slug,
+            tag: item.tag,
+            price: Number(item.price),
+            originalPrice: item.original_price ? Number(item.original_price) : null,
+            condition: item.condition,
+            conditionLabel: item.condition_label,
+            conditionDesc: item.condition_desc,
+            whatsapp: item.whatsapp || '5571999088651',
+            status: item.status || 'available',
+            images: safeImages,
+            video: item.video,
+            description: item.description,
+            specs: Array.isArray(item.specs) ? item.specs : [],
+            createdAt: item.created_at
+          };
+        });
 
         setProducts(mapped);
         localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(mapped));
