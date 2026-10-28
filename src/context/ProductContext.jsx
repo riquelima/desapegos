@@ -47,6 +47,67 @@ export function ProductProvider({ children }) {
   // Toast global
   const [toast, setToast] = useState({ visible: false, message: '', type: 'default' });
 
+  // Sincronizar catálogo local para o Supabase quando o banco estiver vazio
+  const syncLocalProductsToSupabase = async (items) => {
+    try {
+      const payloads = items.map(p => ({
+        title: p.title || 'Item Bazar',
+        subtitle: p.subtitle || null,
+        category: p.category || 'Mobiliário',
+        category_slug: p.categorySlug || 'mobiliario',
+        tag: p.tag || p.category,
+        price: Number(p.price) || 0,
+        original_price: p.originalPrice ? Number(p.originalPrice) : null,
+        condition: p.condition || 'semi-new',
+        condition_label: p.conditionLabel || 'Seminovo / Estado Impecável',
+        condition_desc: p.conditionDesc || '',
+        whatsapp: p.whatsapp || '5571999088651',
+        status: p.status || 'available',
+        images: Array.isArray(p.images) ? p.images : [],
+        video: p.video || null,
+        description: p.description || '',
+        specs: Array.isArray(p.specs) ? p.specs : []
+      }));
+
+      const { data, error } = await supabase
+        .from('desapegos_produtos')
+        .insert(payloads)
+        .select();
+
+      if (error) {
+        console.error('Erro na sincronização com Supabase:', error);
+        setProducts(items);
+      } else if (data && data.length > 0) {
+        const mapped = data.map(item => ({
+          id: String(item.id),
+          title: item.title,
+          subtitle: item.subtitle,
+          category: item.category,
+          categorySlug: item.category_slug,
+          tag: item.tag,
+          price: Number(item.price),
+          originalPrice: item.original_price ? Number(item.original_price) : null,
+          condition: item.condition,
+          conditionLabel: item.condition_label,
+          conditionDesc: item.condition_desc,
+          whatsapp: item.whatsapp || '5571999088651',
+          status: item.status || 'available',
+          images: Array.isArray(item.images) ? item.images : [],
+          video: item.video,
+          description: item.description,
+          specs: Array.isArray(item.specs) ? item.specs : [],
+          createdAt: item.created_at
+        }));
+        setProducts(mapped);
+        localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(mapped));
+        showToast(`${mapped.length} produtos sincronizados com o novo banco Supabase! ✨`);
+      }
+    } catch (e) {
+      console.error('Falha geral na sincronização:', e);
+      setProducts(items);
+    }
+  };
+
   // 1. Carregar produtos do Supabase em tempo real
   const fetchProductsFromSupabase = async () => {
     try {
@@ -85,6 +146,20 @@ export function ProductProvider({ children }) {
         setProducts(mapped);
         localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(mapped));
       } else {
+        // Se o Supabase estiver vazio, verifica se há produtos salvos no localStorage para migrar
+        const stored = localStorage.getItem(STORAGE_KEY_PRODUCTS);
+        if (stored) {
+          try {
+            const localList = JSON.parse(stored);
+            if (Array.isArray(localList) && localList.length > 0) {
+              console.log('Migrando catálogo do cache local para o novo banco Supabase...', localList.length);
+              await syncLocalProductsToSupabase(localList);
+              return;
+            }
+          } catch (e) {
+            console.warn('Erro ao ler cache local para migração:', e);
+          }
+        }
         setProducts([]);
         localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify([]));
       }
@@ -284,7 +359,22 @@ export function ProductProvider({ children }) {
     }
   };
 
-  // 4. Deletar Produto no Supabase
+  // 4. Atualizar fotos de um produto existente (upload de novas fotos)
+  const updateProductImages = async (id, newImages) => {
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, images: newImages } : p));
+    showToast('Fotos atualizadas com sucesso! 📸');
+
+    try {
+      await supabase
+        .from('desapegos_produtos')
+        .update({ images: newImages })
+        .eq('id', id);
+    } catch (err) {
+      console.error('Erro ao atualizar fotos no Supabase:', err);
+    }
+  };
+
+  // 5. Deletar Produto no Supabase
   const deleteProduct = async (id) => {
     setProducts(prev => prev.filter(p => p.id !== id));
     showToast('Item removido do bazar.');
@@ -318,6 +408,7 @@ export function ProductProvider({ children }) {
         addToCart,
         removeFromCart,
         addProduct,
+        updateProductImages,
         deleteProduct,
         updateProductStatus,
         resetToSampleData,

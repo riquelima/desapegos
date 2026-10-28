@@ -1,5 +1,6 @@
 import React from 'react';
 import { useProducts } from '../context/ProductContext';
+import { resolveImageUrl, handleImageError } from '../lib/imageHelper';
 
 export default function CartScreen({ onSelectProduct, onBack }) {
   const { cart, removeFromCart } = useProducts();
@@ -55,7 +56,7 @@ export default function CartScreen({ onSelectProduct, onBack }) {
         ) : (
           <div className="flex flex-col gap-3">
             {cart.map(item => {
-              const cover = item.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=300&q=80';
+              const cover = resolveImageUrl(item.images?.[0], item.category || item.title);
               return (
                 <div
                   key={item.id}
@@ -64,6 +65,7 @@ export default function CartScreen({ onSelectProduct, onBack }) {
                   <img
                     src={cover}
                     alt={item.title}
+                    onError={(e) => handleImageError(e, item.category || item.title)}
                     onClick={() => onSelectProduct(item.id)}
                     className="w-16 h-16 rounded-xl object-cover cursor-pointer hover:opacity-90"
                   />

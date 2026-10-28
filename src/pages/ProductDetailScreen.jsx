@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useProducts } from '../context/ProductContext';
+import { resolveImageUrl, handleImageError, getProductPlaceholder } from '../lib/imageHelper';
 
 export default function ProductDetailScreen({ productId, onBack }) {
   const { products, toggleWishlist, isWishlisted, addToCart } = useProducts();
@@ -26,8 +27,8 @@ export default function ProductDetailScreen({ productId, onBack }) {
 
   const isFav = isWishlisted(product.id);
   const images = Array.isArray(product.images) && product.images.length > 0
-    ? product.images
-    : ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80'];
+    ? product.images.map(img => resolveImageUrl(img, product.category || product.title))
+    : [getProductPlaceholder(product.category || product.title)];
 
   const hasVideo = Boolean(product.video);
   const totalSlides = images.length + (hasVideo ? 1 : 0);
@@ -120,6 +121,7 @@ export default function ProductDetailScreen({ productId, onBack }) {
                 <img
                   src={imgUrl}
                   alt={`${product.title} - foto ${idx + 1}`}
+                  onError={(e) => handleImageError(e, product.category || product.title)}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -231,6 +233,7 @@ export default function ProductDetailScreen({ productId, onBack }) {
                 <img
                   src={imgUrl}
                   alt=""
+                  onError={(e) => handleImageError(e, product.category || product.title)}
                   className="w-full h-full object-cover"
                 />
               </button>

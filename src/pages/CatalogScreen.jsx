@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { CATEGORIES } from '../data/initialProducts';
+import { resolveImageUrl, handleImageError } from '../lib/imageHelper';
 
 export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNavigateToFavorites }) {
   const { products, toggleWishlist, isWishlisted, addToCart } = useProducts();
@@ -184,7 +185,7 @@ export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNa
         <section className="w-full px-margin grid grid-cols-2 gap-gutter pb-6">
           {filteredProducts.map((product) => {
             const isFav = isWishlisted(product.id);
-            const coverImage = product.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80';
+            const coverImage = resolveImageUrl(product.images?.[0], product.category || product.title);
             const isSold = product.status === 'sold';
             const isReserved = product.status === 'reserved';
 
@@ -199,6 +200,7 @@ export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNa
                   <img
                     alt={product.title}
                     src={coverImage}
+                    onError={(e) => handleImageError(e, product.category || product.title)}
                     className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
                       isSold ? 'grayscale opacity-60' : ''
                     }`}

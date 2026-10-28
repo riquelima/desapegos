@@ -1,5 +1,6 @@
 import React from 'react';
 import { useProducts } from '../context/ProductContext';
+import { resolveImageUrl, handleImageError } from '../lib/imageHelper';
 
 export default function FavoritesScreen({ onSelectProduct, onBack }) {
   const { products, wishlist, toggleWishlist } = useProducts();
@@ -49,7 +50,7 @@ export default function FavoritesScreen({ onSelectProduct, onBack }) {
         ) : (
           <div className="grid grid-cols-2 gap-gutter">
             {favoriteProducts.map(product => {
-              const coverImage = product.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80';
+              const coverImage = resolveImageUrl(product.images?.[0], product.category || product.title);
 
               return (
                 <article
@@ -61,6 +62,7 @@ export default function FavoritesScreen({ onSelectProduct, onBack }) {
                     <img
                       alt={product.title}
                       src={coverImage}
+                      onError={(e) => handleImageError(e, product.category || product.title)}
                       className="w-full h-full object-cover"
                     />
                     <button

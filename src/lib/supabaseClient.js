@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { optimizeImageFile } from './imageOptimizer';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://djvaaeggztkhkhsnfjid.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqdmFhZWdnenRraGtoc25mamlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzMTMxMjIsImV4cCI6MjEwNjg4OTEyMn0.tykPy-_yeg06NMc8Y-8_R93QxIuqN7x8urpV6jl09rY';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://pyezsemdvyynwzyhpexx.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5ZXpzZW1kdnl5bnd6eWhwZXh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NjgyMDMsImV4cCI6MjEwMzQ0NDIwM30.7V-YYkiLqtWF4jn15yajlxTstBlxSk7f1Rw5XqsGiRs';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 

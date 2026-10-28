@@ -3,6 +3,7 @@ import { useProducts } from '../context/ProductContext';
 import { CATEGORIES } from '../data/initialProducts';
 import { generateCommercialAd } from '../lib/aiCopywriter';
 import { optimizeImageFile, compressVideoFile, generateVideoThumbnail, getExternalVideoInfo, formatBytes } from '../lib/imageOptimizer';
+import { handleImageError } from '../lib/imageHelper';
 
 export default function AdminScreen({ onBack, onProductCreated, onNavigateToManage, onLogout }) {
   const { addProduct, showToast } = useProducts();
@@ -957,6 +958,7 @@ export default function AdminScreen({ onBack, onProductCreated, onNavigateToMana
                   <img
                     src={publishedProduct.images[0]}
                     alt={publishedProduct.title}
+                    onError={(e) => handleImageError(e, publishedProduct.category || publishedProduct.title)}
                     className="w-full h-full object-cover"
                   />
                 ) : (
