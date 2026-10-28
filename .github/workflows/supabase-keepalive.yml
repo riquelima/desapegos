@@ -1,0 +1,28 @@
+name: Supabase Keep-Alive Ping
+
+on:
+  schedule:
+    # Dispara a cada 3 dias às 12:00 UTC (garante que o projeto nunca atinja 7 dias de inatividade)
+    - cron: '0 12 */3 * *'
+  workflow_dispatch: # Permite disparar manualmente pelo botão no GitHub
+
+jobs:
+  keepalive:
+    name: Ping Supabase API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send API request to Supabase
+        run: |
+          echo "Realizando ping no Supabase para manter o projeto ativo..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5ZXpzZW1kdnl5bnd6eWhwZXh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NjgyMDMsImV4cCI6MjEwMzQ0NDIwM30.7V-YYkiLqtWF4jn15yajlxTstBlxSk7f1Rw5XqsGiRs' }}" \
+            "https://pyezsemdvyynwzyhpexx.supabase.co/rest/v1/desapegos_produtos?select=id&limit=1")
+
+          echo "Código HTTP retornado: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+            echo "Ping concluído com sucesso! Projeto permanece 100% ativo."
+            exit 0
+          else
+            echo "Erro: Resposta inesperada $HTTP_STATUS"
+            exit 1
+          fi
