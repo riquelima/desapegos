@@ -10,20 +10,23 @@ export default function AdminManageScreen({ onBack, onNavigateToCreate, onSelect
   const fileInputRef = useRef(null);
 
   const handlePhotoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !uploadingId) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !uploadingId) return;
 
-    showToast('Otimizando foto e enviando ao Supabase... ⚡');
+    showToast(`Otimizando e enviando ${files.length} foto(s) ao Supabase... ⚡`);
     try {
-      const optimized = await optimizeImageFile(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.82 });
-      const publicUrl = await uploadProductPhoto(optimized.file || file);
+      const uploadedUrls = [];
+      for (const file of files) {
+        const optimized = await optimizeImageFile(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.82 });
+        const publicUrl = await uploadProductPhoto(optimized.file || file);
+        uploadedUrls.push(publicUrl);
+      }
 
-      const prod = products.find(p => p.id === uploadingId);
-      const otherImages = prod && Array.isArray(prod.images) ? prod.images.slice(1) : [];
-      await updateProductImages(uploadingId, [publicUrl, ...otherImages]);
+      await updateProductImages(uploadingId, uploadedUrls);
+      showToast(`${uploadedUrls.length} foto(s) vinculada(s) ao item! 📸✨`);
     } catch (err) {
-      console.error('Erro ao atualizar foto:', err);
-      showToast('Falha no upload da foto. Tente novamente.');
+      console.error('Erro ao atualizar foto(s):', err);
+      showToast('Falha no upload das fotos. Tente novamente.');
     } finally {
       setUploadingId(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -32,11 +35,12 @@ export default function AdminManageScreen({ onBack, onNavigateToCreate, onSelect
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-surface pb-10">
-      {/* Input oculto para upload de foto de capa */}
+      {/* Input oculto para upload de fotos */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handlePhotoUpload}
         className="hidden"
       />
