@@ -2,12 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { CATEGORIES } from '../data/initialProducts';
 import { resolveImageUrl, handleImageError } from '../lib/imageHelper';
+import { WelcomeBannerModal, WelcomeEditorialCard, useWelcomeModal } from '../components/WelcomeBannerModal';
 
 export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNavigateToFavorites }) {
   const { products, toggleWishlist, isWishlisted, addToCart } = useProducts();
   const [selectedCategory, setSelectedCategory] = useState('todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('destaque'); // 'destaque', 'menor', 'maior'
+  const { isOpen: isWelcomeOpen, open: openWelcome, close: closeWelcome } = useWelcomeModal();
 
   // Filtragem e ordenação dinâmica
   const filteredProducts = useMemo(() => {
@@ -61,8 +63,11 @@ export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNa
 
   return (
     <div className="flex flex-col w-full pb-8 min-h-screen bg-surface">
+      {/* Modal Elegante de Abertura / Boas-Vindas */}
+      <WelcomeBannerModal isOpen={isWelcomeOpen} onClose={closeWelcome} />
+
       {/* Hero Editorial Banner */}
-      <section className="relative w-full px-margin pt-4 pb-2 flex flex-col items-center justify-center text-center">
+      <section className="relative w-full px-margin pt-4 pb-1 flex flex-col items-center justify-center text-center">
         <span className="text-[11px] font-label-sm tracking-[0.25em] uppercase text-on-surface-variant/80 mb-0.5">
           Bazar Especial
         </span>
@@ -74,6 +79,9 @@ export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNa
         </h1>
         <div className="w-10 h-[1.5px] bg-secondary/40 mt-1.5 rounded-full"></div>
       </section>
+
+      {/* Banner Editorial Integrado */}
+      <WelcomeEditorialCard onOpenStory={openWelcome} />
 
       {/* Barra de Busca Rápida */}
       <section className="w-full px-margin mt-3 mb-2">
@@ -202,15 +210,16 @@ export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNa
                     src={coverImage}
                     onError={(e) => handleImageError(e, product.category || product.title)}
                     className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-                      isSold ? 'grayscale opacity-60' : ''
+                      isSold ? 'grayscale contrast-75 opacity-70' : ''
                     }`}
                     loading="lazy"
                   />
 
                   {/* Status Badges */}
                   {isSold && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <span className="bg-error text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow">
+                    <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px] flex flex-col items-center justify-center p-2 text-center">
+                      <span className="bg-neutral-900/95 text-white border border-red-500/80 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                         Vendido
                       </span>
                     </div>
@@ -225,10 +234,19 @@ export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNa
                 {/* Dados do Produto */}
                 <div className="p-space-sm flex flex-col flex-1 justify-between gap-space-xs">
                   <div>
-                    <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider block truncate">
-                      {product.tag || product.category || 'Desapego'}
-                    </span>
-                    <h2 className="font-body-md text-body-md text-on-surface font-medium truncate mt-0.5">
+                    <div className="flex items-center gap-1">
+                      <span className="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider block truncate">
+                        {product.tag || product.category || 'Desapego'}
+                      </span>
+                      {isSold && (
+                        <span className="text-[10px] text-error font-bold uppercase tracking-wider">
+                          • Vendido
+                        </span>
+                      )}
+                    </div>
+                    <h2 className={`font-body-md text-body-md font-medium truncate mt-0.5 ${
+                      isSold ? 'text-on-surface-variant line-through' : 'text-on-surface'
+                    }`}>
                       {product.title}
                     </h2>
                   </div>
@@ -236,9 +254,11 @@ export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNa
                   <div className="flex items-center justify-between pt-1 mt-auto">
                     <div className="flex flex-col">
                       <span className="font-label-sm text-[10px] text-on-surface-variant">
-                        À vista
+                        {isSold ? 'Preço de venda' : 'À vista'}
                       </span>
-                      <span className="font-headline-sm text-[15px] leading-tight text-on-surface font-bold tracking-tight">
+                      <span className={`font-headline-sm text-[15px] leading-tight font-bold tracking-tight ${
+                        isSold ? 'text-outline line-through' : 'text-on-surface'
+                      }`}>
                         R$ {Number(product.price).toLocaleString('pt-BR')}
                       </span>
                     </div>
@@ -250,7 +270,11 @@ export default function CatalogScreen({ onSelectProduct, onNavigateToAdmin, onNa
                         e.stopPropagation();
                         onSelectProduct(product.id);
                       }}
-                      className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center transition-transform active:scale-90 hover:bg-neutral-800"
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-90 ${
+                        isSold 
+                          ? 'bg-surface-container-high text-outline hover:text-on-surface' 
+                          : 'bg-primary text-on-primary hover:bg-neutral-800'
+                      }`}
                     >
                       <span className="material-symbols-outlined text-[16px]">
                         arrow_forward

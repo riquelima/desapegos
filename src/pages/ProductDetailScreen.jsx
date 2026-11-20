@@ -26,6 +26,9 @@ export default function ProductDetailScreen({ productId, onBack }) {
   }
 
   const isFav = isWishlisted(product.id);
+  const isSold = product.status === 'sold';
+  const isReserved = product.status === 'reserved';
+
   const images = Array.isArray(product.images) && product.images.length > 0
     ? product.images.map(img => resolveImageUrl(img, product.category || product.title))
     : [getProductPlaceholder(product.category || product.title)];
@@ -110,6 +113,14 @@ export default function ProductDetailScreen({ productId, onBack }) {
         <section className="relative w-full px-margin">
           {/* Container Principal da Mídia (Aspect 4:5 luxury framing) */}
           <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-surface-container-high shadow-md">
+            {/* Badge de Vendido destacado no topo da imagem */}
+            {isSold && (
+              <div className="absolute top-3.5 left-3.5 z-20 bg-neutral-900/95 text-white border border-red-500/80 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                Item Vendido
+              </div>
+            )}
+
             {/* Imagens do Carrossel */}
             {images.map((imgUrl, idx) => (
               <div
@@ -281,7 +292,9 @@ export default function ProductDetailScreen({ productId, onBack }) {
           {/* Cartão de Preço & Condições */}
           <div className="mt-4 p-4 rounded-2xl bg-surface-container-low border border-surface-container-high/60">
             <div className="flex items-baseline gap-2">
-              <span className="font-headline-lg text-[28px] font-bold text-on-surface tracking-tight">
+              <span className={`font-headline-lg text-[28px] font-bold tracking-tight ${
+                isSold ? 'text-outline line-through' : 'text-on-surface'
+              }`}>
                 R$ {Number(product.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
               {product.originalPrice && product.originalPrice > product.price && (
@@ -289,14 +302,27 @@ export default function ProductDetailScreen({ productId, onBack }) {
                   R$ {Number(product.originalPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
               )}
-              <span className="ml-auto bg-secondary/15 text-secondary px-2.5 py-0.5 rounded-full font-label-sm text-[11px] font-bold uppercase">
-                Liquidação
-              </span>
+              {isSold ? (
+                <span className="ml-auto bg-error/15 text-error px-3 py-1 rounded-full font-label-sm text-[11px] font-bold uppercase tracking-wide">
+                  Vendido
+                </span>
+              ) : (
+                <span className="ml-auto bg-secondary/15 text-secondary px-2.5 py-0.5 rounded-full font-label-sm text-[11px] font-bold uppercase">
+                  Liquidação
+                </span>
+              )}
             </div>
 
-            <p className="font-body-sm text-[13px] text-on-surface-variant mt-1.5">
-              ou em até <span className="font-semibold text-on-surface">10x de R$ {(product.price / 10).toFixed(2).replace('.', ',')}</span> sem juros
-            </p>
+            {isSold ? (
+              <div className="mt-3 p-3 rounded-xl bg-error/10 border border-error/20 flex items-center gap-2 text-error text-[12.5px] font-medium">
+                <span className="material-symbols-outlined text-[20px]">check_circle</span>
+                <span>Este item já foi vendido e não está mais disponível para retirada.</span>
+              </div>
+            ) : (
+              <p className="font-body-sm text-[13px] text-on-surface-variant mt-1.5">
+                ou em até <span className="font-semibold text-on-surface">10x de R$ {(product.price / 10).toFixed(2).replace('.', ',')}</span> sem juros
+              </p>
+            )}
 
             <div className="flex items-center gap-1.5 mt-3 pt-2.5 border-t border-surface-container-highest text-on-surface-variant font-body-sm text-[12px]">
               <span className="material-symbols-outlined text-[16px] text-secondary">
@@ -408,23 +434,36 @@ export default function ProductDetailScreen({ productId, onBack }) {
             <span className="font-label-sm text-[10px] uppercase tracking-wider text-on-surface-variant">
               VALOR DO ITEM
             </span>
-            <span className="font-headline-sm text-[20px] font-bold text-on-surface leading-tight">
+            <span className={`font-headline-sm text-[20px] font-bold leading-tight ${
+              isSold ? 'text-outline line-through' : 'text-on-surface'
+            }`}>
               R$ {Number(product.price).toLocaleString('pt-BR')}
             </span>
           </div>
 
-          {/* Botão Oficial WhatsApp */}
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 h-13 py-3.5 px-4 bg-[#25D366] text-white rounded-full flex items-center justify-center gap-2 font-label-lg text-label-lg active:scale-95 transition-all shadow-md hover:brightness-105"
-          >
-            <svg className="w-5 h-5 fill-current shrink-0" viewBox="0 0 24 24">
-              <path d="M12.031 2C6.496 2 2 6.485 2 12.019c0 1.997.585 3.86 1.597 5.43L2 22l4.711-1.543a10.007 10.007 0 005.32 1.562c5.535 0 10.031-4.485 10.031-10.019C22.062 6.485 17.566 2 12.031 2zm5.836 14.199c-.244.686-1.22 1.258-1.706 1.306-.453.045-1.045.066-3.376-.899-2.73-1.13-4.48-3.905-4.616-4.086-.135-.181-1.106-1.472-1.106-2.806s.698-1.992.946-2.261c.247-.27.54-.338.72-.338.181 0 .362.002.519.01.168.009.393-.064.614.469.228.55.776 1.895.845 2.034.068.139.113.3.023.481-.091.18-.135.292-.27.451-.136.158-.285.353-.408.473-.135.133-.276.277-.118.549.157.271.703 1.157 1.507 1.874 1.037.925 1.91 1.213 2.181 1.348.271.135.43.113.589-.068.158-.18.677-.788.857-1.059.181-.271.362-.226.61-.135.249.09 1.58.745 1.851.881.272.135.452.203.52.316.068.113.068.654-.176 1.34z"></path>
-            </svg>
-            <span className="whitespace-nowrap font-semibold">Chamar no WhatsApp</span>
-          </a>
+          {/* Botão de Ação: WhatsApp ou Voltar ao Catálogo se Vendido */}
+          {isSold ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex-1 h-13 py-3.5 px-4 bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-full flex items-center justify-center gap-2 font-label-lg text-label-lg active:scale-95 transition-all shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[20px] text-error">check_circle</span>
+              <span className="whitespace-nowrap font-semibold">Item Vendido • Ver Outros</span>
+            </button>
+          ) : (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 h-13 py-3.5 px-4 bg-[#25D366] text-white rounded-full flex items-center justify-center gap-2 font-label-lg text-label-lg active:scale-95 transition-all shadow-md hover:brightness-105"
+            >
+              <svg className="w-5 h-5 fill-current shrink-0" viewBox="0 0 24 24">
+                <path d="M12.031 2C6.496 2 2 6.485 2 12.019c0 1.997.585 3.86 1.597 5.43L2 22l4.711-1.543a10.007 10.007 0 005.32 1.562c5.535 0 10.031-4.485 10.031-10.019C22.062 6.485 17.566 2 12.031 2zm5.836 14.199c-.244.686-1.22 1.258-1.706 1.306-.453.045-1.045.066-3.376-.899-2.73-1.13-4.48-3.905-4.616-4.086-.135-.181-1.106-1.472-1.106-2.806s.698-1.992.946-2.261c.247-.27.54-.338.72-.338.181 0 .362.002.519.01.168.009.393-.064.614.469.228.55.776 1.895.845 2.034.068.139.113.3.023.481-.091.18-.135.292-.27.451-.136.158-.285.353-.408.473-.135.133-.276.277-.118.549.157.271.703 1.157 1.507 1.874 1.037.925 1.91 1.213 2.181 1.348.271.135.43.113.589-.068.158-.18.677-.788.857-1.059.181-.271.362-.226.61-.135.249.09 1.58.745 1.851.881.272.135.452.203.52.316.068.113.068.654-.176 1.34z"></path>
+              </svg>
+              <span className="whitespace-nowrap font-semibold">Chamar no WhatsApp</span>
+            </a>
+          )}
         </div>
       </div>
     </div>

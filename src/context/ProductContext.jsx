@@ -5,9 +5,9 @@ import { resolveImageUrl, getProductPlaceholder } from '../lib/imageHelper';
 
 const ProductContext = createContext(null);
 
-const STORAGE_KEY_PRODUCTS = 'desapegos_bazar_products_v3';
-const STORAGE_KEY_WISHLIST = 'desapegos_bazar_wishlist_v3';
-const STORAGE_KEY_CART = 'desapegos_bazar_cart_v3';
+const STORAGE_KEY_PRODUCTS = 'desapegos_bazar_products_v4';
+const STORAGE_KEY_WISHLIST = 'desapegos_bazar_wishlist_v4';
+const STORAGE_KEY_CART = 'desapegos_bazar_cart_v4';
 
 export function ProductProvider({ children }) {
   const [products, setProducts] = useState(() => {
